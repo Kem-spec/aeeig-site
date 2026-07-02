@@ -47,6 +47,7 @@ create table public.news (
   date       date not null default current_date,
   categorie  text,
   cover      text not null default 'cover-1',
+  cover_url  text,
   extrait    text,
   contenu    text,
   published  boolean not null default true,
@@ -63,6 +64,7 @@ create table public.library_docs (
   annee      int,
   resume     text,
   file_path  text,
+  file_name  text,
   created_at timestamptz not null default now()
 );
 

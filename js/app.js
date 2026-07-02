@@ -207,6 +207,31 @@ const Payment = {
   // }
 };
 
+/* ---------- Stockage de fichiers (Supabase Storage) ---------- */
+function safeFileName(n) {
+  return (n || "fichier").normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-zA-Z0-9._-]/g, "_");
+}
+const Storage = {
+  async uploadCover(file) {
+    const path = Date.now() + "-" + safeFileName(file.name);
+    const { error } = await SB.storage.from("covers").upload(path, file, { upsert: false });
+    if (error) throw error;
+    return SB.storage.from("covers").getPublicUrl(path).data.publicUrl;
+  },
+  async uploadDoc(file) {
+    const path = Date.now() + "-" + safeFileName(file.name);
+    const { error } = await SB.storage.from("bibliotheque").upload(path, file, { upsert: false });
+    if (error) throw error;
+    return { path, name: file.name };
+  },
+  async signedDocUrl(path) {
+    const { data, error } = await SB.storage.from("bibliotheque").createSignedUrl(path, 3600);
+    if (error) throw error;
+    return data.signedUrl;
+  },
+};
+
 /* ---------- Menus déroulants avec option « Autre » ---------- */
 // Génère les <option> d'un select ; sélectionne « Autre » si la valeur
 // courante n'est pas dans la liste (valeur personnalisée).
@@ -276,10 +301,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 /* ---------- Rendu : carte actualité ---------- */
+function coverAttrs(article) {
+  return article.cover_url
+    ? { cls: "has-image", style: ` style="background-image:url('${encodeURI(article.cover_url)}');"` }
+    : { cls: article.cover || "cover-1", style: "" };
+}
+
 function newsCardHTML(article) {
+  const c = coverAttrs(article);
   return `
     <a class="news-card" href="actualites.html#${article.slug || article.id}">
-      <div class="news-cover ${article.cover}">
+      <div class="news-cover ${c.cls}"${c.style}>
         <span class="news-cat">${escapeHtml(article.categorie)}</span>
       </div>
       <div class="news-body">
@@ -324,25 +356,44 @@ async function openViewer(docId) {
     document.addEventListener("keydown", e => { if (e.key === "Escape") closeViewer(); });
   }
 
+  const watermark = escapeHtml(me ? (me.full_name || me.email) : "Portail AEEIG");
+  let body;
+  if (doc.file_path) {
+    const isPdf = /\.pdf$/i.test(doc.file_name || doc.file_path);
+    try {
+      const url = await Storage.signedDocUrl(doc.file_path);
+      body = isPdf
+        ? `<iframe src="${url}#toolbar=0" style="width:100%; height:100%; border:none;" title="${escapeHtml(doc.titre)}"></iframe>`
+        : `<div style="padding:40px 24px; text-align:center;">
+             <p><strong>${escapeHtml(doc.file_name || "Document")}</strong></p>
+             <p style="color:var(--ink-soft);">Ce format ne s'affiche pas directement dans le navigateur.</p>
+             <a class="btn btn-primary" href="${url}" target="_blank" rel="noopener">Ouvrir le document</a>
+           </div>`;
+    } catch (e) {
+      body = `<div style="padding:40px 24px;"><p>Impossible d'ouvrir ce document.</p>
+              <p style="color:var(--ink-soft); font-size:.9rem;">${escapeHtml(e.message || "")}</p></div>`;
+    }
+  } else {
+    body = `<div class="viewer-page" oncontextmenu="return false">
+        <div class="watermark">AEEIG · ${watermark}</div>
+        <p><strong>${escapeHtml(doc.type)} — ${escapeHtml(doc.auteur)} (${doc.annee || ""})</strong></p>
+        <p><em>${escapeHtml(doc.resume)}</em></p>
+        <p>Aucun fichier n'a encore été joint à ce document.</p>
+      </div>`;
+  }
+
   overlay.innerHTML = `
     <div class="viewer">
       <div class="viewer-head">
         <h3>${escapeHtml(doc.titre)}</h3>
         <button class="btn btn-outline btn-sm" onclick="closeViewer()" aria-label="Fermer la visionneuse">✕ Fermer</button>
       </div>
-      <div class="viewer-page" oncontextmenu="return false">
-        <div class="watermark">AEEIG · ${escapeHtml(me ? (me.full_name || me.email) : "Portail AEEIG")}</div>
-        <p><strong>${escapeHtml(doc.type)} — ${escapeHtml(doc.auteur)} (${doc.annee || ""})</strong></p>
-        <p><em>${escapeHtml(doc.resume)}</em></p>
-        <p>Le fichier PDF de ce document n'a pas encore été téléversé. Une fois ajouté par
-        l'administration, il s'affichera ici page par page dans la visionneuse sécurisée,
-        sans possibilité de téléchargement.</p>
-      </div>
+      <div class="viewer-frame" style="flex:1; overflow:auto; background:var(--surface);">${body}</div>
       <div class="viewer-foot">
-        <span>Consultation en ligne uniquement</span>
+        <span>Consultation réservée aux membres et abonnés · ${watermark}</span>
         <span class="viewer-lock">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-          Téléchargement désactivé
+          Lien sécurisé temporaire
         </span>
       </div>
     </div>`;

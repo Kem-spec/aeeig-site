@@ -117,7 +117,7 @@
       document.title = article.titre + " — AEEIG";
       document.getElementById("article-container").innerHTML = `
         <a href="actualites.html#" class="btn btn-ghost btn-sm" style="margin-bottom:24px;">← Toutes les actualités</a>
-        <div class="article-cover ${article.cover}"></div>
+        <div class="article-cover ${article.cover_url ? "has-image" : article.cover}"${article.cover_url ? ` style="background-image:url('${encodeURI(article.cover_url)}');"` : ""}></div>
         <span class="news-date">${formatDate(article.date)} · <strong style="color:var(--green-deep);">${escapeHtml(article.categorie)}</strong></span>
         <h1 style="margin-top:8px;">${escapeHtml(article.titre)}</h1>
         <div class="article-body">${(article.contenu || "").split("\n\n").map(p => `<p>${escapeHtml(p)}</p>`).join("")}</div>`;

@@ -449,6 +449,12 @@ img, svg { max-width: 100%; }
     radial-gradient(circle at 88% 60%, rgba(255,255,255,.08) 0 90px, transparent 91px);
 }
 .news-cover, .article-cover { position: relative; overflow: hidden; }
+.news-cover.has-image, .article-cover.has-image {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.news-cover.has-image::after, .article-cover.has-image::after { display: none; }
 
 /* ---------- Bibliothèque ---------- */
 .lib-toolbar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 22px; }

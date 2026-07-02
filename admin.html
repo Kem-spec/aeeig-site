@@ -308,7 +308,13 @@
           <div class="field"><label for="n-date">Date</label><input type="date" id="n-date" value="${a.date ? a.date.slice(0,10) : ""}"></div>
           <div class="field"><label for="n-cat">Catégorie</label><select id="n-cat">${NEWS_CATEGORIES.map(c => `<option ${c===a.categorie?"selected":""}>${c}</option>`).join("")}</select></div>
         </div>
-        <div class="field"><label for="n-cover">Couleur de couverture</label><select id="n-cover">${NEWS_COVERS.map(c => `<option value="${c}" ${c===a.cover?"selected":""}>${c}</option>`).join("")}</select></div>
+        <div class="field"><label for="n-cover">Couleur de couverture (si pas d'image)</label><select id="n-cover">${NEWS_COVERS.map(c => `<option value="${c}" ${c===a.cover?"selected":""}>${c}</option>`).join("")}</select></div>
+        <div class="field">
+          <label for="n-cover-img">Image de couverture (optionnel)</label>
+          <input type="file" id="n-cover-img" accept="image/*">
+          ${a.cover_url ? `<div style="margin-top:8px;"><img src="${a.cover_url}" alt="" style="height:70px; border-radius:6px; border:1px solid var(--border);"><br><label style="font-weight:400; font-size:.85rem;"><input type="checkbox" id="n-cover-remove"> Retirer l'image actuelle</label></div>` : ""}
+          <span class="hint">Une image remplace la couleur de couverture. Formats JPG/PNG, idéalement en paysage.</span>
+        </div>
         <div class="field"><label for="n-extrait">Extrait (résumé court)</label><textarea id="n-extrait" rows="2">${escapeHtml(a.extrait)}</textarea></div>
         <div class="field"><label for="n-contenu">Contenu complet (séparez les paragraphes par une ligne vide)</label><textarea id="n-contenu" rows="7">${escapeHtml(a.contenu)}</textarea></div>
         <div class="field"><label><input type="checkbox" id="n-pub" ${a.published?"checked":""}> Publié (visible par tous)</label></div>
@@ -327,6 +333,10 @@
     const id = document.getElementById("n-id").value;
     const titre = document.getElementById("n-titre").value.trim();
     if (!titre) return;
+    const submitBtn = e.target.querySelector("button[type=submit]");
+    const oldTxt = submitBtn.textContent;
+    submitBtn.disabled = true; submitBtn.textContent = "Enregistrement…";
+
     const obj = {
       titre,
       date: document.getElementById("n-date").value || new Date().toISOString().slice(0,10),
@@ -336,6 +346,22 @@
       contenu: document.getElementById("n-contenu").value.trim(),
       published: document.getElementById("n-pub").checked,
     };
+
+    // Image de couverture (upload si un fichier est choisi)
+    const fileInput = document.getElementById("n-cover-img");
+    const removeChk = document.getElementById("n-cover-remove");
+    try {
+      if (fileInput && fileInput.files[0]) {
+        submitBtn.textContent = "Téléversement de l'image…";
+        obj.cover_url = await Storage.uploadCover(fileInput.files[0]);
+      } else if (removeChk && removeChk.checked) {
+        obj.cover_url = null;
+      }
+    } catch (err) {
+      toast("Erreur image : " + (err.message || "téléversement impossible"));
+      submitBtn.disabled = false; submitBtn.textContent = oldTxt; return;
+    }
+
     let res;
     if (id) {
       res = await News.update(id, obj);
@@ -343,7 +369,7 @@
       obj.slug = slugify(titre) + "-" + Math.random().toString(36).slice(2,6);
       res = await News.create(obj);
     }
-    if (res.error) { toast("Erreur : " + res.error.message); return; }
+    if (res.error) { toast("Erreur : " + res.error.message); submitBtn.disabled = false; submitBtn.textContent = oldTxt; return; }
     newsEditor.style.display = "none";
     newsList = await News.all();
     renderNews(); renderStats();
@@ -380,7 +406,11 @@
           <div class="field"><label for="d-annee">Année</label><input type="number" id="d-annee" value="2026"></div>
         </div>
         <div class="field"><label for="d-resume">Résumé</label><textarea id="d-resume" rows="3"></textarea></div>
-        <p class="hint">Le téléversement du fichier PDF sera ajouté prochainement ; pour l'instant seule la fiche descriptive est enregistrée.</p>
+        <div class="field">
+          <label for="d-file">Fichier (PDF, Word, PowerPoint, Excel…)</label>
+          <input type="file" id="d-file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx">
+          <span class="hint">Les PDF s'ouvrent directement dans la visionneuse. Les autres formats s'ouvrent via un lien sécurisé temporaire.</span>
+        </div>
         <div style="display:flex; gap:10px;">
           <button type="submit" class="btn btn-green">Ajouter</button>
           <button type="button" class="btn btn-outline" id="doc-cancel">Annuler</button>
@@ -392,6 +422,9 @@
       ev.preventDefault();
       const titre = document.getElementById("d-titre").value.trim();
       if (!titre) return;
+      const submitBtn = ev.target.querySelector("button[type=submit]");
+      const oldTxt = submitBtn.textContent;
+      submitBtn.disabled = true; submitBtn.textContent = "Enregistrement…";
       const obj = {
         titre,
         auteur: document.getElementById("d-auteur").value.trim(),
@@ -400,8 +433,20 @@
         annee: parseInt(document.getElementById("d-annee").value, 10) || null,
         resume: document.getElementById("d-resume").value.trim(),
       };
+      // Téléversement du fichier si fourni
+      const fileInput = document.getElementById("d-file");
+      try {
+        if (fileInput && fileInput.files[0]) {
+          submitBtn.textContent = "Téléversement du fichier…";
+          const up = await Storage.uploadDoc(fileInput.files[0]);
+          obj.file_path = up.path; obj.file_name = up.name;
+        }
+      } catch (err) {
+        toast("Erreur fichier : " + (err.message || "téléversement impossible"));
+        submitBtn.disabled = false; submitBtn.textContent = oldTxt; return;
+      }
       const res = await Library.create(obj);
-      if (res.error) { toast("Erreur : " + res.error.message); return; }
+      if (res.error) { toast("Erreur : " + res.error.message); submitBtn.disabled = false; submitBtn.textContent = oldTxt; return; }
       docEditor.style.display = "none";
       docs = await Library.list();
       renderDocs(); renderStats(); toast("Document ajouté.");
