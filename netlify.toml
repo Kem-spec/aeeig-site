@@ -1,0 +1,17 @@
+# Configuration Netlify — site statique (aucune compilation nécessaire)
+[build]
+  publish = "."
+
+# En-têtes de sécurité de base
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Cache long pour les images/CSS/JS (le HTML reste revalidé)
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"

@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connexion &amp; inscription — AEEIG</title>
+  <meta name="description" content="Connectez-vous à votre espace AEEIG, créez votre compte membre avec votre clé d'adhésion ou abonnez-vous en ligne.">
+  <link rel="icon" href="assets/favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon-256.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/favicon-256.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="tricolor" aria-hidden="true"></div>
+
+<header class="site-header">
+  <div class="nav-wrap">
+    <a class="brand" href="index.html">
+      <img src="assets/logo-full.png" alt="AEEIG — Association des Étudiants Ivoiriens en Guinée">
+      <span class="brand-sub">Étudiants ivoiriens en Guinée</span>
+    </a>
+    <nav class="main-nav" aria-label="Navigation principale">
+      <a href="index.html">Accueil</a>
+      <a href="actualites.html">Actualités</a>
+      <a href="bibliotheque.html">Bibliothèque</a>
+      <a href="a-propos.html">À propos</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-primary btn-sm" href="index.html">← Retour à l'accueil</a>
+      <button class="burger" aria-label="Ouvrir le menu" aria-expanded="false">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="section">
+    <div class="container">
+      <div class="form-card">
+
+        <div style="text-align:center; margin-bottom:24px;">
+          <img src="assets/logo-full.png" alt="Logo AEEIG" style="height:70px; width:auto;">
+          <h2 id="auth-title" style="margin:.4em 0 .2em;">Connexion</h2>
+          <p id="auth-sub" style="color:var(--ink-soft); font-size:.94rem; margin:0;">Accédez à votre espace AEEIG</p>
+        </div>
+
+        <div id="form-alert"></div>
+
+        <!-- ============ VUE CONNEXION ============ -->
+        <section id="view-login">
+          <form id="form-login" novalidate>
+            <div class="field">
+              <label for="login-email">Adresse e-mail <span class="req">*</span></label>
+              <input type="email" id="login-email" autocomplete="email" required>
+              <span class="error-msg">Saisissez une adresse e-mail valide.</span>
+            </div>
+            <div class="field">
+              <label for="login-pass">Mot de passe <span class="req">*</span></label>
+              <input type="password" id="login-pass" autocomplete="current-password" required>
+              <span class="error-msg">Le mot de passe est requis.</span>
+            </div>
+            <div style="text-align:right; margin:-4px 0 16px;">
+              <a href="#" style="font-size:.85rem;" onclick="toast('En production : un e-mail de réinitialisation vous sera envoyé.'); return false;">Mot de passe oublié ?</a>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;">Se connecter</button>
+          </form>
+
+          <div class="auth-switch">
+            <span>Vous n'avez pas encore de compte ?</span>
+            <button type="button" class="btn btn-outline" style="width:100%;" id="go-create">Créer un compte</button>
+          </div>
+
+          <div class="alert alert-info" style="margin-top:18px; font-size:.82rem;">
+            <span><strong>Mode démonstration</strong> — connectez-vous avec n'importe quel e-mail et mot de passe,
+            ou en tant qu'admin : <code>admin@aeeig.org</code> / <code>Admin2026!</code></span>
+          </div>
+        </section>
+
+        <!-- ============ VUE CRÉATION DE COMPTE ============ -->
+        <section id="view-create" style="display:none;">
+          <div class="tabs" role="tablist" aria-label="Type de compte">
+            <button type="button" class="tab-btn active" data-acct="member" role="tab">Membre AEEIG</button>
+            <button type="button" class="tab-btn" data-acct="sub" role="tab">Abonnement</button>
+          </div>
+
+          <!-- Inscription membre (clé d'adhésion) -->
+          <form id="form-member" novalidate>
+            <div class="alert alert-info" style="font-size:.86rem;">
+              <span>Réservé aux membres à jour de leur carte. Votre <strong>clé d'adhésion</strong> vous a été remise
+              par la trésorerie après paiement. Pas encore de clé ? Contactez la trésorerie au
+              <strong data-setting="tresorierPhone">+224 620 00 00 00</strong>.</span>
+            </div>
+            <div class="field">
+              <label for="m-key">Clé d'adhésion <span class="req">*</span></label>
+              <input type="text" id="m-key" placeholder="AEEIG-2026-XXXX" autocomplete="off" style="text-transform:uppercase; font-family:ui-monospace,monospace;" required>
+              <span class="hint">Clé à usage unique, valable pour l'année académique en cours. (Démo : essayez <code>AEEIG-2026-K7X4</code>)</span>
+              <span class="error-msg" id="m-key-error">La clé d'adhésion est requise.</span>
+            </div>
+            <div class="field">
+              <label for="m-nom">Nom et prénoms <span class="req">*</span></label>
+              <input type="text" id="m-nom" autocomplete="name" required>
+              <span class="error-msg">Votre nom complet est requis.</span>
+            </div>
+            <div class="field">
+              <label for="m-email">Adresse e-mail <span class="req">*</span></label>
+              <input type="email" id="m-email" autocomplete="email" required>
+              <span class="error-msg">Saisissez une adresse e-mail valide.</span>
+            </div>
+            <div class="field">
+              <label for="m-univ">Université fréquentée <span class="req">*</span></label>
+              <select id="m-univ" data-other="m-univ-other" required>
+                <option value="">— Choisir —</option>
+                <option>Université Gamal Abdel Nasser de Conakry</option>
+                <option>Université Général Lansana Conté de Sonfonia</option>
+                <option>Université Kofi Annan de Guinée</option>
+                <option>Université la Source</option>
+                <option>Institut Supérieur de Technologie de Mamou</option>
+                <option>Autre</option>
+              </select>
+              <span class="error-msg">Sélectionnez votre université.</span>
+            </div>
+            <div class="field" id="m-univ-other" hidden>
+              <label for="m-univ-other-input">Précisez votre université <span class="req">*</span></label>
+              <input type="text" id="m-univ-other-input" autocomplete="off">
+              <span class="error-msg">Indiquez le nom de votre université.</span>
+            </div>
+            <div class="field">
+              <label for="m-fac">Faculté <span class="req">*</span></label>
+              <select id="m-fac" data-other="m-fac-other" required>
+                <option value="">— Choisir —</option>
+                <option>Faculté de Médecine, Pharmacie et Odonto-Stomatologie</option>
+                <option>Faculté des Sciences et Techniques</option>
+                <option>Faculté de Droit et Sciences Politiques</option>
+                <option>Faculté des Sciences Économiques et de Gestion</option>
+                <option>Faculté des Lettres et Sciences Humaines</option>
+                <option>Faculté des Sciences Sociales</option>
+                <option>Institut Polytechnique (Génie)</option>
+                <option>Autre</option>
+              </select>
+              <span class="error-msg">Sélectionnez votre faculté.</span>
+            </div>
+            <div class="field" id="m-fac-other" hidden>
+              <label for="m-fac-other-input">Précisez votre faculté <span class="req">*</span></label>
+              <input type="text" id="m-fac-other-input" autocomplete="off">
+              <span class="error-msg">Indiquez le nom de votre faculté.</span>
+            </div>
+            <div class="field">
+              <label for="m-pass">Mot de passe <span class="req">*</span></label>
+              <input type="password" id="m-pass" autocomplete="new-password" minlength="8" required>
+              <span class="hint">8 caractères minimum.</span>
+              <span class="error-msg">Le mot de passe doit contenir au moins 8 caractères.</span>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;">Créer mon compte membre</button>
+          </form>
+
+          <!-- Abonnement non-membre (avec paiement) -->
+          <form id="form-sub" style="display:none;" novalidate>
+            <div class="alert alert-info" style="font-size:.86rem;">
+              <span>Abonnement <strong data-setting="abonnementDuree">12 mois</strong> —
+              <strong data-setting="abonnementTarif">150 000 GNF / an</strong>.
+              Accès à la bibliothèque en ligne et aux actualités. Aucun renouvellement automatique.</span>
+            </div>
+            <div class="field">
+              <label for="s-nom">Nom et prénoms <span class="req">*</span></label>
+              <input type="text" id="s-nom" autocomplete="name" required>
+              <span class="error-msg">Votre nom complet est requis.</span>
+            </div>
+            <div class="field">
+              <label for="s-email">Adresse e-mail <span class="req">*</span></label>
+              <input type="email" id="s-email" autocomplete="email" required>
+              <span class="hint">Vous recevrez un rappel avant l'échéance de votre abonnement.</span>
+              <span class="error-msg">Saisissez une adresse e-mail valide.</span>
+            </div>
+            <div class="field">
+              <label for="s-pass">Mot de passe <span class="req">*</span></label>
+              <input type="password" id="s-pass" autocomplete="new-password" minlength="8" required>
+              <span class="error-msg">Le mot de passe doit contenir au moins 8 caractères.</span>
+            </div>
+            <div class="field">
+              <label for="s-pay">Moyen de paiement <span class="req">*</span></label>
+              <select id="s-pay" required>
+                <option value="">— Choisir —</option>
+                <option value="orange">Orange Money</option>
+                <option value="mtn">MTN Money</option>
+                <option value="carte">Carte bancaire</option>
+              </select>
+              <span class="error-msg">Sélectionnez un moyen de paiement.</span>
+            </div>
+            <div class="field" id="s-phone-field" hidden>
+              <label for="s-phone">Numéro Mobile Money à débiter <span class="req">*</span></label>
+              <input type="tel" id="s-phone" inputmode="tel" placeholder="+224 6XX XX XX XX" autocomplete="tel">
+              <span class="hint" id="s-merchant-note"></span>
+              <span class="error-msg">Saisissez le numéro à débiter.</span>
+            </div>
+            <div class="pay-summary">
+              <span>Montant à régler</span>
+              <strong data-setting="abonnementTarif">150 000 GNF / an</strong>
+            </div>
+            <button type="submit" class="btn btn-green" style="width:100%;" id="s-submit">Payer et activer mon abonnement</button>
+            <p class="hint" style="text-align:center; margin-top:12px;">Paiement sécurisé. En mode maquette, le paiement est simulé ; en production, il transitera par la passerelle de paiement.</p>
+          </form>
+
+          <p class="auth-switch" style="text-align:center;">
+            Vous avez déjà un compte ? <a href="#" id="go-login">Se connecter</a>
+          </p>
+        </section>
+
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-bottom" style="border-top:none; padding-top:0;">
+      <span>© 2026 AEEIG — Tous droits réservés</span>
+      <a href="index.html">Retour à l'accueil</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  const alertBox = document.getElementById("form-alert");
+  const authTitle = document.getElementById("auth-title");
+  const authSub = document.getElementById("auth-sub");
+
+  function clearAlert() { alertBox.innerHTML = ""; }
+  function showAlert(type, msg) {
+    alertBox.innerHTML = `<div class="alert alert-${type}" role="alert"><span>${msg}</span></div>`;
+  }
+
+  /* ---- Si déjà connecté : proposer d'aller à son espace ---- */
+  if (Auth.user) {
+    const dest = Auth.user.role === "admin" ? "admin.html" : "espace-membre.html";
+    showAlert("info", `Vous êtes déjà connecté. <a href="${dest}">Aller à mon espace</a>.`);
+  }
+
+  /* ---- Bascule Connexion / Création ---- */
+  const viewLogin = document.getElementById("view-login");
+  const viewCreate = document.getElementById("view-create");
+
+  function showView(name) {
+    const create = name === "create";
+    viewLogin.style.display = create ? "none" : "block";
+    viewCreate.style.display = create ? "block" : "none";
+    authTitle.textContent = create ? "Créer un compte" : "Connexion";
+    authSub.textContent = create ? "Rejoignez le portail AEEIG" : "Accédez à votre espace AEEIG";
+    clearAlert();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  document.getElementById("go-create").addEventListener("click", () => showView("create"));
+  document.getElementById("go-login").addEventListener("click", e => { e.preventDefault(); showView("login"); });
+
+  /* ---- Type de compte (membre / abonnement) ---- */
+  const acctTabs = document.querySelectorAll("[data-acct]");
+  const acctForms = { member: document.getElementById("form-member"), sub: document.getElementById("form-sub") };
+  function showAcct(type) {
+    acctTabs.forEach(t => t.classList.toggle("active", t.dataset.acct === type));
+    Object.entries(acctForms).forEach(([k, f]) => f.style.display = k === type ? "block" : "none");
+    clearAlert();
+  }
+  acctTabs.forEach(t => t.addEventListener("click", () => showAcct(t.dataset.acct)));
+
+  /* ---- Point d'entrée selon l'ancre ---- */
+  if (location.hash === "#inscription") { showView("create"); showAcct("member"); }
+  else if (location.hash === "#abonnement") { showView("create"); showAcct("sub"); }
+  else showView("login");
+
+  /* ---- Champs « Autre » : révèlent une saisie libre ---- */
+  document.querySelectorAll("select[data-other]").forEach(sel => {
+    const extra = document.getElementById(sel.dataset.other);
+    const input = extra.querySelector("input");
+    sel.addEventListener("change", () => {
+      const other = sel.value === "Autre";
+      extra.hidden = !other;
+      input.required = other;
+      if (!other) { input.value = ""; extra.classList.remove("has-error"); }
+    });
+  });
+
+  // Valeur d'un select, ou la saisie libre quand « Autre » est choisi
+  function selectValue(selId) {
+    const sel = document.getElementById(selId);
+    if (sel.value === "Autre" && sel.dataset.other) {
+      return document.getElementById(sel.dataset.other).querySelector("input").value.trim();
+    }
+    return sel.value;
+  }
+
+  /* ---- Validation (ignore les champs masqués) ---- */
+  function validate(form) {
+    let ok = true, first = null;
+    form.querySelectorAll("input[required], select[required]").forEach(el => {
+      const field = el.closest(".field");
+      if (field && field.hidden) return;
+      const bad = el.value.trim() === "" || !el.checkValidity();
+      if (field) field.classList.toggle("has-error", bad);
+      if (bad) { ok = false; first = first || el; }
+    });
+    if (first) first.focus();
+    return ok;
+  }
+
+  /* ================= CONNEXION ================= */
+  document.getElementById("form-login").addEventListener("submit", e => {
+    e.preventDefault();
+    if (!validate(e.target)) return;
+    const email = document.getElementById("login-email").value.trim();
+    const pass = document.getElementById("login-pass").value;
+    const res = Auth.authenticate(email, pass);
+    if (!res.ok) { showAlert("error", res.reason); return; }
+    window.location.href = res.user.role === "admin" ? "admin.html" : "espace-membre.html";
+  });
+
+  /* ================= INSCRIPTION MEMBRE ================= */
+  document.getElementById("form-member").addEventListener("submit", e => {
+    e.preventDefault();
+    if (!validate(e.target)) return;
+
+    const keyInput = document.getElementById("m-key");
+    const check = Auth.isKeyValid(keyInput.value);
+    if (!check.ok) {
+      keyInput.closest(".field").classList.add("has-error");
+      document.getElementById("m-key-error").textContent = check.reason;
+      keyInput.focus();
+      showAlert("error", check.reason);
+      return;
+    }
+
+    const email = document.getElementById("m-email").value.trim();
+    if (Auth.findAccount(email)) {
+      showAlert("error", "Un compte existe déjà avec cet e-mail. Connectez-vous plutôt.");
+      return;
+    }
+
+    Auth.consumeKey(check.key.code);
+    const user = {
+      nom: document.getElementById("m-nom").value.trim(),
+      email,
+      role: "membre",
+      universite: selectValue("m-univ"),
+      faculte: selectValue("m-fac"),
+      cle: check.key.code,
+      password: document.getElementById("m-pass").value,
+    };
+    Auth.register(user);
+    const { password, ...safe } = user;
+    Auth.login(safe);
+    window.location.href = "espace-membre.html";
+  });
+
+  /* ================= ABONNEMENT + PAIEMENT ================= */
+  const payMethodSel = document.getElementById("s-pay");
+  const phoneField = document.getElementById("s-phone-field");
+  const phoneInput = document.getElementById("s-phone");
+  const merchantNote = document.getElementById("s-merchant-note");
+
+  payMethodSel.addEventListener("change", () => {
+    const m = payMethodSel.value;
+    const mobile = (m === "orange" || m === "mtn");
+    phoneField.hidden = !mobile;
+    phoneInput.required = mobile;
+    if (mobile) {
+      const merch = Payment.merchantFor(m);
+      merchantNote.textContent = merch
+        ? `Un débit de ${Payment.amountLabel()} sera demandé sur ce numéro. Marchand AEEIG : ${merch}.`
+        : `Le numéro marchand AEEIG sera communiqué lors de la confirmation du paiement.`;
+    } else {
+      phoneInput.value = "";
+    }
+  });
+
+  document.getElementById("form-sub").addEventListener("submit", e => {
+    e.preventDefault();
+    if (!validate(e.target)) return;
+
+    const email = document.getElementById("s-email").value.trim();
+    if (Auth.findAccount(email)) {
+      showAlert("error", "Un compte existe déjà avec cet e-mail. Connectez-vous plutôt.");
+      return;
+    }
+
+    const btn = document.getElementById("s-submit");
+    btn.disabled = true;
+    btn.textContent = "Paiement en cours…";
+    clearAlert();
+
+    Payment.process({ method: payMethodSel.value, phone: phoneInput.value.trim(), email })
+      .then(result => {
+        if (!result.ok) {
+          btn.disabled = false;
+          btn.textContent = "Payer et activer mon abonnement";
+          showAlert("info", result.message || "Paiement en attente de confirmation.");
+          return;
+        }
+        const fin = new Date();
+        fin.setFullYear(fin.getFullYear() + 1);
+        const user = {
+          nom: document.getElementById("s-nom").value.trim(),
+          email,
+          role: "abonne",
+          finAbonnement: fin.toISOString().slice(0, 10),
+          paiement: {
+            ref: result.ref,
+            methode: result.method,
+            montant: result.montant,
+            date: new Date().toISOString().slice(0, 10),
+          },
+          password: document.getElementById("s-pass").value,
+        };
+        Auth.register(user);
+        const { password, ...safe } = user;
+        Auth.login(safe);
+        window.location.href = "espace-membre.html";
+      })
+      .catch(() => {
+        btn.disabled = false;
+        btn.textContent = "Payer et activer mon abonnement";
+        showAlert("error", "Le paiement n'a pas abouti. Réessayez ou changez de moyen de paiement.");
+      });
+  });
+</script>
+
+</body>
+</html>

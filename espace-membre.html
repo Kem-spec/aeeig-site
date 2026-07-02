@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mon espace — AEEIG</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="assets/favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon-256.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/favicon-256.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="tricolor" aria-hidden="true"></div>
+
+<header class="site-header">
+  <div class="nav-wrap">
+    <a class="brand" href="index.html">
+      <img src="assets/logo-full.png" alt="AEEIG — Association des Étudiants Ivoiriens en Guinée">
+      <span class="brand-sub">Étudiants ivoiriens en Guinée</span>
+    </a>
+    <nav class="main-nav" aria-label="Navigation principale">
+      <a href="index.html">Accueil</a>
+      <a href="actualites.html">Actualités</a>
+      <a href="bibliotheque.html">Bibliothèque</a>
+      <a href="a-propos.html">À propos</a>
+    </nav>
+    <div class="nav-cta">
+      <button class="btn btn-outline btn-sm" onclick="Auth.logout()">Se déconnecter</button>
+      <button class="burger" aria-label="Ouvrir le menu" aria-expanded="false">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="section">
+  <div class="container" id="member-root"></div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-bottom" style="border-top:none; padding-top:0;">
+      <span>© 2026 AEEIG — Tous droits réservés</span>
+      <a href="index.html">Retour à l'accueil</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  const user = Auth.user;
+  const root = document.getElementById("member-root");
+
+  if (!user) {
+    window.location.href = "connexion.html";
+  } else if (user.role === "admin") {
+    window.location.href = "admin.html";
+  } else if (user.role === "abonne") {
+    /* ============ Vue ABONNÉ non-membre ============ */
+    root.innerHTML = `
+      <div style="max-width:720px; margin:0 auto;">
+        <span class="kicker">Espace abonné</span>
+        <h1 style="font-size:2rem;">Bienvenue, ${escapeHtml(user.nom)}</h1>
+        <div class="panel-card">
+          <h3>Mon abonnement</h3>
+          <p><span class="badge badge-green">Actif</span> &nbsp; Valable jusqu'au <strong>${formatDate(user.finAbonnement)}</strong>.</p>
+          ${user.paiement ? `<p style="font-size:.9rem; color:var(--ink-soft); margin:0 0 8px;">Paiement confirmé — référence <span class="key-code">${escapeHtml(user.paiement.ref)}</span>${user.paiement.montant ? ` · ${user.paiement.montant.toLocaleString("fr-FR")} GNF` : ""}.</p>` : ""}
+          <p style="color:var(--ink-soft); font-size:.92rem;">Un rappel vous sera envoyé par e-mail à l'approche de l'échéance.
+          Sans renouvellement, l'accès à la bibliothèque sera suspendu automatiquement.</p>
+        </div>
+        <div class="profiles">
+          <a class="profile-card profile-guest" href="bibliotheque.html" style="text-decoration:none; color:inherit;">
+            <h3>Bibliothèque en ligne</h3>
+            <p style="color:var(--ink-soft);">Consultez les mémoires, thèses, cours et guides depuis la visionneuse.</p>
+            <span class="news-link">Accéder →</span>
+          </a>
+          <a class="profile-card profile-member" href="actualites.html" style="text-decoration:none; color:inherit;">
+            <h3>Actualités AEEIG</h3>
+            <p style="color:var(--ink-soft);">Suivez la vie de l'association et ses annonces officielles.</p>
+            <span class="news-link">Accéder →</span>
+          </a>
+        </div>
+      </div>`;
+  } else {
+    /* ============ Vue MEMBRE (étudiant) ============ */
+    root.innerHTML = `
+      <div class="dash-layout">
+        <aside class="dash-side">
+          <div class="side-user">
+            <div class="avatar">${initials(user.nom)}</div>
+            <div>
+              <strong>${escapeHtml(user.nom)}</strong>
+              <span>Membre AEEIG · 2026-2027</span>
+            </div>
+          </div>
+          <nav class="dash-nav" aria-label="Navigation de l'espace membre">
+            <button class="active" data-panel="apercu">Aperçu</button>
+            <button data-panel="academique">Suivi académique</button>
+            <button data-panel="depots">Mes dépôts</button>
+            <button data-panel="profil">Mon profil</button>
+            <a href="bibliotheque.html">Bibliothèque ↗</a>
+          </nav>
+        </aside>
+
+        <div>
+          <!-- Aperçu -->
+          <section class="dash-panel active" id="panel-apercu">
+            <h2 style="margin-bottom:24px;">Bonjour, ${escapeHtml(user.nom.split(" ")[0])} 👋</h2>
+            <div class="stat-grid">
+              <div class="stat-card stat-orange"><div class="stat-num">2026-27</div><div class="stat-label">Année académique</div></div>
+              <div class="stat-card stat-green"><div class="stat-num">Actif</div><div class="stat-label">Statut de la carte</div></div>
+              <div class="stat-card stat-orange"><div class="stat-num">2</div><div class="stat-label">Bulletins déposés</div></div>
+              <div class="stat-card stat-green"><div class="stat-num">1</div><div class="stat-label">Mémoire en ligne</div></div>
+            </div>
+            <div class="panel-card">
+              <h3>Dernières actualités</h3>
+              <div id="member-news" style="display:flex; flex-direction:column; gap:12px;"></div>
+            </div>
+          </section>
+
+          <!-- Suivi académique -->
+          <section class="dash-panel" id="panel-academique">
+            <h2 style="margin-bottom:24px;">Suivi académique</h2>
+            <div class="panel-card">
+              <h3>Informations en cours</h3>
+              <div class="table-wrap"><table class="data">
+                <tr><th>Université</th><td>${escapeHtml(user.universite || "—")}</td></tr>
+                <tr><th>Faculté</th><td>${escapeHtml(user.faculte || "À renseigner dans « Mon profil »")}</td></tr>
+                <tr><th>Année académique</th><td>2026-2027</td></tr>
+              </table></div>
+            </div>
+            <div class="panel-card">
+              <h3>Bulletins de notes</h3>
+              <div class="table-wrap"><table class="data">
+                <thead><tr><th>Période</th><th>Fichier</th><th>Statut</th></tr></thead>
+                <tbody>
+                  <tr><td>Semestre 1 — 2025-2026</td><td>bulletin_s1.pdf</td><td><span class="badge badge-green">Validé</span></td></tr>
+                  <tr><td>Semestre 2 — 2025-2026</td><td>bulletin_s2.pdf</td><td><span class="badge badge-orange">En vérification</span></td></tr>
+                </tbody>
+              </table></div>
+              <button class="btn btn-outline btn-sm" style="margin-top:16px;" onclick="toast('En production : dépôt de fichier PDF sécurisé.')">+ Déposer un bulletin</button>
+            </div>
+          </section>
+
+          <!-- Dépôts -->
+          <section class="dash-panel" id="panel-depots">
+            <h2 style="margin-bottom:24px;">Mes dépôts (thèse / mémoire)</h2>
+            <div class="panel-card">
+              <p style="color:var(--ink-soft);">Déposez votre thèse ou mémoire : après validation par l'administration,
+              il sera publié dans la bibliothèque en ligne et consultable par la communauté.</p>
+              <div class="table-wrap"><table class="data">
+                <thead><tr><th>Titre</th><th>Type</th><th>Déposé le</th><th>Statut</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td>Mémoire de fin de cycle</td><td>Mémoire</td><td>12 juin 2026</td>
+                    <td><span class="badge badge-green">Publié</span></td>
+                  </tr>
+                </tbody>
+              </table></div>
+              <button class="btn btn-primary btn-sm" style="margin-top:16px;" onclick="toast('En production : formulaire de dépôt avec fichier PDF.')">+ Déposer un document</button>
+            </div>
+          </section>
+
+          <!-- Profil -->
+          <section class="dash-panel" id="panel-profil">
+            <h2 style="margin-bottom:24px;">Mon profil</h2>
+            <div class="panel-card">
+              <form id="profile-form" novalidate>
+                <div class="field">
+                  <label for="p-nom">Nom et prénoms</label>
+                  <input type="text" id="p-nom" value="${escapeHtml(user.nom)}">
+                </div>
+                <div class="field">
+                  <label for="p-email">Adresse e-mail</label>
+                  <input type="email" id="p-email" value="${escapeHtml(user.email)}">
+                </div>
+                <div class="field">
+                  <label for="p-univ">Université</label>
+                  <input type="text" id="p-univ" value="${escapeHtml(user.universite || "")}">
+                </div>
+                ${user.cle ? `<div class="field">
+                  <label>Clé d'adhésion utilisée</label>
+                  <span class="key-code">${escapeHtml(user.cle)}</span>
+                </div>` : ""}
+                <button type="submit" class="btn btn-green">Enregistrer les modifications</button>
+              </form>
+            </div>
+          </section>
+        </div>
+      </div>`;
+
+    // Navigation interne
+    document.querySelectorAll(".dash-nav button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".dash-nav button").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        document.querySelectorAll(".dash-panel").forEach(p => p.classList.remove("active"));
+        document.getElementById("panel-" + btn.dataset.panel).classList.add("active");
+      });
+    });
+
+    // Mini-fil d'actus
+    document.getElementById("member-news").innerHTML = AEEIG.news.slice(0, 3).map(n => `
+      <a href="actualites.html#${n.id}" style="display:flex; justify-content:space-between; gap:16px; text-decoration:none; color:inherit; padding:10px 0; border-bottom:1px solid var(--border);">
+        <span style="font-weight:600; font-size:.94rem;">${escapeHtml(n.titre)}</span>
+        <span class="news-date" style="white-space:nowrap;">${formatDate(n.date)}</span>
+      </a>`).join("");
+
+    // Sauvegarde du profil
+    document.getElementById("profile-form").addEventListener("submit", e => {
+      e.preventDefault();
+      const updated = {
+        ...user,
+        nom: document.getElementById("p-nom").value.trim() || user.nom,
+        email: document.getElementById("p-email").value.trim() || user.email,
+        universite: document.getElementById("p-univ").value.trim(),
+      };
+      Auth.login(updated);
+      toast("Profil mis à jour ✓");
+    });
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Actualités — AEEIG</title>
+  <meta name="description" content="Toutes les actualités et annonces officielles de l'Association des Étudiants Ivoiriens en Guinée.">
+  <link rel="icon" href="assets/favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon-256.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/favicon-256.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="tricolor" aria-hidden="true"></div>
+
+<header class="site-header">
+  <div class="nav-wrap">
+    <a class="brand" href="index.html">
+      <img src="assets/logo-full.png" alt="AEEIG — Association des Étudiants Ivoiriens en Guinée">
+      <span class="brand-sub">Étudiants ivoiriens en Guinée</span>
+    </a>
+    <nav class="main-nav" aria-label="Navigation principale">
+      <a href="index.html">Accueil</a>
+      <a href="actualites.html" class="active">Actualités</a>
+      <a href="bibliotheque.html">Bibliothèque</a>
+      <a href="a-propos.html">À propos</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-outline btn-sm" href="connexion.html" data-auth-cta>Se connecter</a>
+      <a class="btn btn-primary btn-sm" href="connexion.html#inscription" data-join-cta>Rejoindre</a>
+      <button class="burger" aria-label="Ouvrir le menu" aria-expanded="false">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- Vue liste -->
+  <div id="view-list">
+    <section class="page-hero">
+      <div class="container">
+        <span class="kicker">Vie de l'association</span>
+        <h1>Actualités &amp; annonces</h1>
+        <p>Communiqués officiels, événements, campagnes d'adhésion et vie de la communauté : retrouvez ici toutes les informations publiées par le bureau de l'AEEIG.</p>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top: 12px;">
+      <div class="container">
+        <div class="chip-row" id="news-filters" style="margin-bottom: 30px;"></div>
+        <div class="news-grid" id="news-list"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Vue détail -->
+  <div id="view-detail" style="display:none;">
+    <section class="section">
+      <div class="container article-detail" id="article-container"></div>
+    </section>
+  </div>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-bottom" style="border-top:none; padding-top:0;">
+      <span>© 2026 AEEIG — Tous droits réservés</span>
+      <a href="index.html">Retour à l'accueil</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  const listEl = document.getElementById("news-list");
+  const filtersEl = document.getElementById("news-filters");
+  const viewList = document.getElementById("view-list");
+  const viewDetail = document.getElementById("view-detail");
+  let currentCat = "Toutes";
+
+  // Filtres par catégorie
+  const cats = ["Toutes", ...new Set(AEEIG.news.map(n => n.categorie))];
+  filtersEl.innerHTML = cats.map(c =>
+    `<button class="chip${c === currentCat ? " active" : ""}" data-cat="${c}">${c}</button>`
+  ).join("");
+  filtersEl.addEventListener("click", e => {
+    const btn = e.target.closest(".chip");
+    if (!btn) return;
+    currentCat = btn.dataset.cat;
+    filtersEl.querySelectorAll(".chip").forEach(c => c.classList.toggle("active", c === btn));
+    renderList();
+  });
+
+  function renderList() {
+    const items = currentCat === "Toutes"
+      ? AEEIG.news
+      : AEEIG.news.filter(n => n.categorie === currentCat);
+    listEl.innerHTML = items.length
+      ? items.map(newsCardHTML).join("")
+      : `<div class="empty-state" style="grid-column:1/-1;">Aucune actualité dans cette catégorie pour le moment.</div>`;
+  }
+
+  // Détail via ancre (#id-article) — URL partageable
+  function route() {
+    const id = location.hash.slice(1);
+    const article = AEEIG.news.find(n => n.id === id);
+    if (article) {
+      document.title = article.titre + " — AEEIG";
+      document.getElementById("article-container").innerHTML = `
+        <a href="actualites.html#" class="btn btn-ghost btn-sm" style="margin-bottom:24px;">← Toutes les actualités</a>
+        <div class="article-cover ${article.cover}"></div>
+        <span class="news-date">${formatDate(article.date)} · <strong style="color:var(--green-deep);">${escapeHtml(article.categorie)}</strong></span>
+        <h1 style="margin-top:8px;">${escapeHtml(article.titre)}</h1>
+        <div class="article-body">${article.contenu.split("\n\n").map(p => `<p>${escapeHtml(p)}</p>`).join("")}</div>`;
+      viewList.style.display = "none";
+      viewDetail.style.display = "block";
+      window.scrollTo(0, 0);
+    } else {
+      document.title = "Actualités — AEEIG";
+      viewDetail.style.display = "none";
+      viewList.style.display = "block";
+      renderList();
+    }
+  }
+
+  window.addEventListener("hashchange", route);
+  route();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,16 @@
+# Système
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Éditeurs / IDE
+.vscode/
+.idea/
+*.swp
+
+# Outils Claude / preview local (non nécessaires en ligne)
+.claude/
+
+# Divers
+*.log
+scratchpad/

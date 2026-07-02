@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Administration — AEEIG</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="assets/favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon-256.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/favicon-256.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="tricolor" aria-hidden="true"></div>
+
+<header class="site-header">
+  <div class="nav-wrap">
+    <a class="brand" href="index.html">
+      <img src="assets/logo-full.png" alt="AEEIG — Association des Étudiants Ivoiriens en Guinée">
+      <span class="brand-sub">Espace administrateur</span>
+    </a>
+    <div class="nav-cta">
+      <a class="btn btn-ghost btn-sm" href="index.html">Voir le site ↗</a>
+      <button class="btn btn-outline btn-sm" onclick="Auth.logout()">Se déconnecter</button>
+    </div>
+  </div>
+</header>
+
+<main class="section">
+  <div class="container" id="admin-root"></div>
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  const user = Auth.user;
+  const root = document.getElementById("admin-root");
+
+  if (!user || user.role !== "admin") {
+    root.innerHTML = `
+      <div class="form-card" style="text-align:center;">
+        <img src="assets/logo-full.png" alt="Logo AEEIG" style="height:60px; width:auto; margin-bottom:8px;">
+        <h2>Accès réservé</h2>
+        <p style="color:var(--ink-soft);">Cet espace est réservé aux administrateurs de l'AEEIG.
+        Connectez-vous avec un compte administrateur pour continuer.</p>
+        <a class="btn btn-primary" href="connexion.html">Se connecter</a>
+        <p class="hint" style="margin-top:14px;">Démo : <code>admin@aeeig.org</code> / <code>Admin2026!</code></p>
+      </div>`;
+  } else {
+    const keys = AEEIG.demoKeys;
+    const usedLocal = Auth.usedKeys();
+
+    // Comptes réellement créés depuis le portail (fusionnés aux données de démo)
+    const allSubscribers = [
+      ...Auth.registeredSubscribers().map(a => ({
+        nom: a.nom, email: a.email,
+        debut: (a.paiement && a.paiement.date) || new Date().toISOString().slice(0, 10),
+        fin: a.finAbonnement, statut: "actif",
+      })),
+      ...AEEIG.demoSubscribers,
+    ];
+    const allStudents = [
+      ...Auth.registeredMembers().map((a, i) => ({
+        id: "ET-N" + String(i + 1).padStart(3, "0"),
+        nom: a.nom, universite: a.universite || "—",
+        filiere: a.faculte || "—", annee: "2026-2027", statut: "actif",
+      })),
+      ...AEEIG.demoStudents,
+    ];
+
+    root.innerHTML = `
+      <div class="dash-layout">
+        <aside class="dash-side">
+          <div class="side-user">
+            <div class="avatar">AD</div>
+            <div><strong>Administration</strong><span>Bureau exécutif AEEIG</span></div>
+          </div>
+          <nav class="dash-nav" aria-label="Navigation administrateur">
+            <button class="active" data-panel="dash">Tableau de bord</button>
+            <button data-panel="keys">Clés d'adhésion</button>
+            <button data-panel="students">Membres</button>
+            <button data-panel="subs">Abonnements</button>
+            <button data-panel="content">Contenus</button>
+            <button data-panel="settings">Paramètres</button>
+          </nav>
+        </aside>
+
+        <div>
+          <!-- ===== Tableau de bord ===== -->
+          <section class="dash-panel active" id="panel-dash">
+            <h2 style="margin-bottom:24px;">Tableau de bord</h2>
+            <div class="stat-grid">
+              <div class="stat-card stat-orange"><div class="stat-num">${AEEIG.demoStudents.length * 61}</div><div class="stat-label">Membres inscrits</div></div>
+              <div class="stat-card stat-green"><div class="stat-num">${AEEIG.demoSubscribers.filter(s => s.statut === "actif").length * 9}</div><div class="stat-label">Abonnés actifs</div></div>
+              <div class="stat-card stat-orange"><div class="stat-num">${keys.filter(k => k.statut === "remise" || k.statut === "générée").length}</div><div class="stat-label">Clés en attente</div></div>
+              <div class="stat-card stat-green"><div class="stat-num">${AEEIG.library.length}</div><div class="stat-label">Documents en ligne</div></div>
+            </div>
+            <div class="panel-card">
+              <h3>Dernières actions</h3>
+              <div class="table-wrap"><table class="data">
+                <tbody>
+                  <tr><td>Clé <span class="key-code">AEEIG-2026-B8W3</span> générée pour Koné Salif</td><td class="news-date">28 juin 2026</td></tr>
+                  <tr><td>Actualité « Assemblée générale 2026 » publiée</td><td class="news-date">25 juin 2026</td></tr>
+                  <tr><td>Document « Cours complet d'anatomie » ajouté à la bibliothèque</td><td class="news-date">22 juin 2026</td></tr>
+                  <tr><td>Abonnement de Sylla Mohamed expiré (non renouvelé)</td><td class="news-date">15 mai 2026</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+          </section>
+
+          <!-- ===== Clés d'adhésion ===== -->
+          <section class="dash-panel" id="panel-keys">
+            <div class="section-head" style="margin-bottom:24px;">
+              <h2 style="margin:0;">Clés d'adhésion</h2>
+              <div style="display:flex; gap:10px;">
+                <button class="btn btn-outline btn-sm" onclick="toast('En production : génération en lot avec export CSV.')">Générer en lot</button>
+                <button class="btn btn-primary btn-sm" id="gen-key">+ Générer une clé</button>
+              </div>
+            </div>
+            <div class="alert alert-info">
+              <span>Une clé se génère <strong>après constat du paiement de la carte</strong> (en main propre).
+              Elle est à usage unique, rattachée à l'année académique, et peut être annulée tant qu'elle n'a pas servi.</span>
+            </div>
+            <div class="panel-card">
+              <div class="table-wrap"><table class="data">
+                <thead><tr><th>Clé</th><th>Bénéficiaire</th><th>Générée le</th><th>Statut</th><th></th></tr></thead>
+                <tbody id="keys-tbody"></tbody>
+              </table></div>
+            </div>
+          </section>
+
+          <!-- ===== Membres ===== -->
+          <section class="dash-panel" id="panel-students">
+            <h2 style="margin-bottom:24px;">Membres étudiants</h2>
+            <div class="lib-search" style="max-width:420px; margin-bottom:20px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+              <input type="search" id="student-q" placeholder="Rechercher par nom, identifiant ou université…" aria-label="Rechercher un étudiant">
+            </div>
+            <div class="panel-card">
+              <div class="table-wrap"><table class="data">
+                <thead><tr><th>ID</th><th>Nom</th><th>Université</th><th>Filière</th><th>Année</th><th>Statut</th></tr></thead>
+                <tbody id="students-tbody"></tbody>
+              </table></div>
+            </div>
+          </section>
+
+          <!-- ===== Abonnements ===== -->
+          <section class="dash-panel" id="panel-subs">
+            <h2 style="margin-bottom:24px;">Abonnements non-membres</h2>
+            <div class="panel-card">
+              <div class="table-wrap"><table class="data">
+                <thead><tr><th>Nom</th><th>E-mail</th><th>Souscrit le</th><th>Échéance</th><th>Statut</th><th></th></tr></thead>
+                <tbody>
+                  ${allSubscribers.map(s => `
+                    <tr>
+                      <td><strong>${escapeHtml(s.nom)}</strong></td>
+                      <td>${escapeHtml(s.email)}</td>
+                      <td>${formatDate(s.debut)}</td>
+                      <td>${formatDate(s.fin)}</td>
+                      <td><span class="badge ${s.statut === "actif" ? "badge-green" : "badge-red"}">${s.statut}</span></td>
+                      <td>${s.statut === "actif"
+                        ? `<button class="btn btn-outline btn-sm" onclick="toast('En production : suspension avec confirmation et journalisation.')">Suspendre</button>`
+                        : `<button class="btn btn-green btn-sm" onclick="toast('En production : relance de renouvellement par e-mail.')">Relancer</button>`}</td>
+                    </tr>`).join("")}
+                </tbody>
+              </table></div>
+            </div>
+          </section>
+
+          <!-- ===== Contenus ===== -->
+          <section class="dash-panel" id="panel-content">
+            <h2 style="margin-bottom:24px;">Actualités &amp; bibliothèque</h2>
+            <div class="panel-card">
+              <div class="section-head" style="margin-bottom:16px;">
+                <h3 style="margin:0;">Actualités publiées</h3>
+                <button class="btn btn-primary btn-sm" onclick="toast('En production : éditeur d\\'article avec image et catégorie.')">+ Nouvelle actualité</button>
+              </div>
+              <div class="table-wrap"><table class="data">
+                <tbody>
+                  ${AEEIG.news.map(n => `
+                    <tr>
+                      <td><strong>${escapeHtml(n.titre)}</strong><br><span class="news-date">${formatDate(n.date)} · ${escapeHtml(n.categorie)}</span></td>
+                      <td style="white-space:nowrap; text-align:right;">
+                        <button class="btn btn-outline btn-sm" onclick="toast('En production : modification de l\\'article.')">Modifier</button>
+                      </td>
+                    </tr>`).join("")}
+                </tbody>
+              </table></div>
+            </div>
+            <div class="panel-card">
+              <div class="section-head" style="margin-bottom:16px;">
+                <h3 style="margin:0;">Documents de la bibliothèque</h3>
+                <button class="btn btn-green btn-sm" onclick="toast('En production : dépôt de PDF avec fiche descriptive.')">+ Ajouter un document</button>
+              </div>
+              <div class="table-wrap"><table class="data">
+                <thead><tr><th>Titre</th><th>Type</th><th>Filière</th><th>Année</th></tr></thead>
+                <tbody>
+                  ${AEEIG.library.slice(0, 6).map(d => `
+                    <tr>
+                      <td><strong>${escapeHtml(d.titre)}</strong><br><span class="news-date">${escapeHtml(d.auteur)}</span></td>
+                      <td>${d.type}</td><td>${escapeHtml(d.filiere)}</td><td>${d.annee}</td>
+                    </tr>`).join("")}
+                </tbody>
+              </table></div>
+            </div>
+          </section>
+
+          <!-- ===== Paramètres ===== -->
+          <section class="dash-panel" id="panel-settings">
+            <h2 style="margin-bottom:24px;">Paramètres du site</h2>
+            <div class="panel-card">
+              <p style="color:var(--ink-soft);">Ces informations s'affichent sur la page d'accueil (bloc « deux profils »)
+              et sont modifiables sans toucher au code du site.</p>
+              <form onsubmit="event.preventDefault(); toast('En production : paramètres enregistrés en base de données.');">
+                <div class="field">
+                  <label for="set-phone">Téléphone de la trésorerie</label>
+                  <input type="tel" id="set-phone" value="${AEEIG.settings.tresorierPhone}">
+                </div>
+                <div class="field">
+                  <label for="set-perm">Permanences (paiement en main propre)</label>
+                  <input type="text" id="set-perm" value="${AEEIG.settings.tresorierPermanence}">
+                </div>
+                <div class="field">
+                  <label for="set-tarif">Tarif de l'abonnement non-membre</label>
+                  <input type="text" id="set-tarif" value="${AEEIG.settings.abonnementTarif}">
+                </div>
+                <button type="submit" class="btn btn-green">Enregistrer</button>
+              </form>
+            </div>
+          </section>
+        </div>
+      </div>`;
+
+    /* Navigation panneaux */
+    document.querySelectorAll(".dash-nav button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".dash-nav button").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        document.querySelectorAll(".dash-panel").forEach(p => p.classList.remove("active"));
+        document.getElementById("panel-" + btn.dataset.panel).classList.add("active");
+      });
+    });
+
+    /* Clés d'adhésion */
+    const KEY_BADGE = { "générée": "badge-gray", "remise": "badge-orange", "utilisée": "badge-green", "annulée": "badge-red" };
+    const extraKeys = Auth.generatedKeys();
+
+    function renderKeys() {
+      const all = [...extraKeys, ...keys].map(k => {
+        const statut = (usedLocal.includes(k.code) && k.statut !== "annulée") ? "utilisée" : k.statut;
+        return { ...k, statut };
+      });
+      document.getElementById("keys-tbody").innerHTML = all.map(k => `
+        <tr>
+          <td><span class="key-code">${k.code}</span></td>
+          <td>${escapeHtml(k.nom)}</td>
+          <td>${formatDate(k.date)}</td>
+          <td><span class="badge ${KEY_BADGE[k.statut] || "badge-gray"}">${k.statut}</span></td>
+          <td style="text-align:right;">${(k.statut === "générée" || k.statut === "remise")
+            ? `<button class="btn btn-outline btn-sm" onclick="toast('En production : annulation avec confirmation et journalisation.')">Annuler</button>`
+            : ""}</td>
+        </tr>`).join("");
+    }
+    renderKeys();
+
+    document.getElementById("gen-key").addEventListener("click", () => {
+      const nom = prompt("Nom de l'étudiant bénéficiaire (paiement de la carte constaté) :");
+      if (!nom || !nom.trim()) return;
+      const rand = () => "ABCDEFGHJKLMNPQRSTUVWXYZ123456789"[Math.floor(Math.random() * 33)];
+      const code = "AEEIG-2026-" + rand() + rand() + rand() + rand();
+      const key = { code, nom: nom.trim(), date: new Date().toISOString().slice(0, 10), statut: "générée" };
+      extraKeys.unshift(key);
+      Auth.addGeneratedKey(key);   // persistée : utilisable par l'étudiant à l'inscription
+      renderKeys();
+      toast("Clé " + code + " générée pour " + nom.trim());
+    });
+
+    /* Recherche membres */
+    function renderStudents(q = "") {
+      const items = allStudents.filter(s =>
+        !q || (s.id + " " + s.nom + " " + s.universite + " " + s.filiere).toLowerCase().includes(q)
+      );
+      document.getElementById("students-tbody").innerHTML = items.length
+        ? items.map(s => `
+          <tr>
+            <td><span class="key-code">${s.id}</span></td>
+            <td><strong>${escapeHtml(s.nom)}</strong></td>
+            <td>${escapeHtml(s.universite)}</td>
+            <td>${escapeHtml(s.filiere)}</td>
+            <td>${escapeHtml(s.annee)}</td>
+            <td><span class="badge ${s.statut === "actif" ? "badge-green" : "badge-orange"}">${s.statut}</span></td>
+          </tr>`).join("")
+        : `<tr><td colspan="6" style="text-align:center; color:var(--ink-soft); padding:30px;">Aucun étudiant ne correspond à cette recherche.</td></tr>`;
+    }
+    renderStudents();
+    document.getElementById("student-q").addEventListener("input", e => renderStudents(e.target.value.toLowerCase().trim()));
+  }
+</script>
+
+</body>
+</html>

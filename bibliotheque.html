@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bibliothèque en ligne — AEEIG</title>
+  <meta name="description" content="Bibliothèque numérique de l'AEEIG : mémoires, thèses, cours et guides consultables en ligne par les membres et abonnés.">
+  <link rel="icon" href="assets/favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon-256.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/favicon-256.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="tricolor" aria-hidden="true"></div>
+
+<header class="site-header">
+  <div class="nav-wrap">
+    <a class="brand" href="index.html">
+      <img src="assets/logo-full.png" alt="AEEIG — Association des Étudiants Ivoiriens en Guinée">
+      <span class="brand-sub">Étudiants ivoiriens en Guinée</span>
+    </a>
+    <nav class="main-nav" aria-label="Navigation principale">
+      <a href="index.html">Accueil</a>
+      <a href="actualites.html">Actualités</a>
+      <a href="bibliotheque.html" class="active">Bibliothèque</a>
+      <a href="a-propos.html">À propos</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-outline btn-sm" href="connexion.html" data-auth-cta>Se connecter</a>
+      <a class="btn btn-primary btn-sm" href="connexion.html#inscription" data-join-cta>Rejoindre</a>
+      <button class="burger" aria-label="Ouvrir le menu" aria-expanded="false">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="page-hero">
+    <div class="container">
+      <span class="kicker">Ressources</span>
+      <h1>Bibliothèque en ligne</h1>
+      <p>Mémoires, thèses, supports de cours et guides pratiques déposés par les membres et le bureau de l'association.
+         Les documents se consultent <strong>en ligne uniquement</strong>, depuis la visionneuse sécurisée du portail.</p>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top: 12px;">
+    <div class="container">
+
+      <div id="lib-locked" class="alert alert-info" style="display:none; max-width:none;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0; margin-top:2px;"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        <span>La lecture des documents est réservée aux <strong>membres</strong> et <strong>abonnés</strong> connectés.
+        Vous pouvez parcourir le catalogue librement — <a href="connexion.html">connectez-vous</a> ou
+        <a href="connexion.html#abonnement">abonnez-vous</a> pour lire en ligne.</span>
+      </div>
+
+      <div class="lib-toolbar">
+        <div class="lib-search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="search" id="lib-q" placeholder="Rechercher un titre, un auteur, un mot-clé…" aria-label="Rechercher dans la bibliothèque">
+        </div>
+        <div class="chip-row" id="lib-types"></div>
+      </div>
+      <div class="chip-row" id="lib-filieres" style="margin-bottom: 28px;"></div>
+
+      <p class="doc-meta" id="lib-count" style="margin-bottom:16px;"></p>
+      <div class="doc-grid" id="lib-grid"></div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-bottom" style="border-top:none; padding-top:0;">
+      <span>© 2026 AEEIG — Tous droits réservés</span>
+      <a href="index.html">Retour à l'accueil</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  const grid = document.getElementById("lib-grid");
+  const qInput = document.getElementById("lib-q");
+  const typesEl = document.getElementById("lib-types");
+  const filieresEl = document.getElementById("lib-filieres");
+  const countEl = document.getElementById("lib-count");
+  const isLogged = !!Auth.user;
+
+  if (!isLogged) document.getElementById("lib-locked").style.display = "flex";
+
+  let fType = "Tous", fFiliere = "Toutes", q = "";
+
+  const types = ["Tous", ...new Set(AEEIG.library.map(d => d.type))];
+  const filieres = ["Toutes", ...new Set(AEEIG.library.map(d => d.filiere))];
+
+  typesEl.innerHTML = types.map(t => `<button class="chip${t === "Tous" ? " active" : ""}" data-v="${t}">${t}</button>`).join("");
+  filieresEl.innerHTML = filieres.map(f => `<button class="chip${f === "Toutes" ? " active" : ""}" data-v="${f}">${f}</button>`).join("");
+
+  typesEl.addEventListener("click", e => {
+    const btn = e.target.closest(".chip"); if (!btn) return;
+    fType = btn.dataset.v;
+    typesEl.querySelectorAll(".chip").forEach(c => c.classList.toggle("active", c === btn));
+    render();
+  });
+  filieresEl.addEventListener("click", e => {
+    const btn = e.target.closest(".chip"); if (!btn) return;
+    fFiliere = btn.dataset.v;
+    filieresEl.querySelectorAll(".chip").forEach(c => c.classList.toggle("active", c === btn));
+    render();
+  });
+  qInput.addEventListener("input", () => { q = qInput.value.toLowerCase().trim(); render(); });
+
+  function render() {
+    const items = AEEIG.library.filter(d =>
+      (fType === "Tous" || d.type === fType) &&
+      (fFiliere === "Toutes" || d.filiere === fFiliere) &&
+      (!q || (d.titre + " " + d.auteur + " " + d.filiere + " " + d.resume).toLowerCase().includes(q))
+    );
+    countEl.textContent = items.length + " document" + (items.length > 1 ? "s" : "") + " trouvé" + (items.length > 1 ? "s" : "");
+    grid.innerHTML = items.length
+      ? items.map(d => docCardHTML(d, { locked: !isLogged })).join("")
+      : `<div class="empty-state" style="grid-column:1/-1;">
+           <h3>Aucun document trouvé</h3>
+           <p>Essayez d'autres mots-clés ou réinitialisez les filtres.</p>
+         </div>`;
+  }
+
+  render();
+</script>
+
+</body>
+</html>
