@@ -1026,6 +1026,9 @@ table.data tr:hover td { background: var(--surface); }
   .dash-nav button.active { border-left: none; border-bottom-color: var(--green); }
   .value-grid { grid-template-columns: 1fr; }
   .value-card + .value-card { border-left: none; border-top: 1px solid var(--border); }
+  /* Actualités : 2 colonnes sur tablette, la carte vedette prend toute la largeur */
+  .news-grid, .news-grid.bento { grid-template-columns: repeat(2, 1fr); }
+  .news-grid.bento > :first-child { grid-column: span 2; }
 }
 
 @media (max-width: 860px) {
@@ -1062,19 +1065,36 @@ table.data tr:hover td { background: var(--surface); }
   .hero-media img { object-position: 60% 30%; }
   .profiles { grid-template-columns: 1fr; }
   .profile-card + .profile-card { border-left: none; border-top: 1px solid var(--border); }
-  .news-grid { grid-template-columns: 1fr; }
+  /* Actualités : une seule colonne, cartes larges (couverture paysage) */
+  .news-grid, .news-grid.bento { grid-template-columns: 1fr; }
+  .news-grid.bento > :first-child { grid-column: auto; }
+  .news-grid.bento > :first-child .news-cover { height: 180px; }
+  .news-cover { height: 170px; }
   .doc-grid { grid-template-columns: repeat(2, 1fr); }
   .contact-grid { grid-template-columns: 1fr; }
   .cta-band { padding: 36px 28px; }
   .viewer-page { padding: 28px 22px; }
   .form-card { padding: 28px 22px; }
   .hero-stat { padding-right: 22px; margin-right: 22px; }
+  /* Rythme vertical resserré sur mobile */
+  .section { padding: 52px 0; }
+  .container { padding: 0 16px; }
+  .nav-wrap { padding: 12px 20px; }
+  .section-head { margin-bottom: 30px; }
+  .panel-card { padding: 22px 18px; }
+  .profile-card { padding: 28px 22px; }
+  /* Les cadres « agence » perdent leur gros padding : place au contenu */
+  .frame { padding: 32px 16px; border-radius: var(--radius-lg); }
 }
 
 @media (max-width: 480px) {
   .doc-grid { grid-template-columns: 1fr; }
   .stat-grid { grid-template-columns: 1fr 1fr; }
   .footer-grid { grid-template-columns: 1fr; }
+  .news-cover { height: 150px; }
+  .hero-stat strong { font-size: 1.5rem; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .btn { padding: 12px 18px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
