@@ -40,7 +40,7 @@
   const root = document.getElementById("admin-root");
   const me = await Auth.me();
 
-  if (!me || me.role !== "admin") {
+  if (!me || !me.is_admin) {
     root.innerHTML = `
       <div class="form-card" style="text-align:center;">
         <img src="assets/logo-full.png" alt="Logo AEEIG" style="height:60px; width:auto; margin-bottom:8px;">
@@ -67,6 +67,7 @@
           <button data-panel="subs">Abonnements</button>
           <button data-panel="content">Contenus</button>
           <button data-panel="settings">Paramètres</button>
+          <a href="espace-membre.html">Mon espace ↗</a>
         </nav>
       </aside>
 

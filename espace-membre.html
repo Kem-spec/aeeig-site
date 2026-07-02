@@ -58,9 +58,9 @@
   const me = await Auth.me();
 
   if (!me) { window.location.href = "connexion.html"; return; }
-  if (me.role === "admin") { window.location.href = "admin.html"; return; }
 
   const prenom = (me.full_name || me.email || "").split(" ")[0];
+  const adminLink = me.is_admin ? `<a href="admin.html">Administration ↗</a>` : "";
 
   if (me.role === "abonne") {
     /* ============ Vue ABONNÉ non-membre ============ */
@@ -70,6 +70,7 @@
       <div style="max-width:720px; margin:0 auto;">
         <span class="kicker">Espace abonné</span>
         <h1 style="font-size:2rem;">Bienvenue, ${escapeHtml(me.full_name || me.email)}</h1>
+        ${me.is_admin ? `<p><a class="btn btn-outline btn-sm" href="admin.html">Administration ↗</a></p>` : ""}
         <div class="panel-card">
           <h3>Mon abonnement</h3>
           ${sub ? `<p><span class="badge ${sub.statut === "actif" ? "badge-green" : "badge-red"}">${sub.statut}</span> &nbsp; Valable jusqu'au <strong>${formatDate(sub.fin)}</strong>.</p>
@@ -92,7 +93,7 @@
     return;
   }
 
-  if (me.role !== "membre") {
+  if (me.role !== "membre" && !me.is_admin) {
     /* Compte créé mais adhésion non finalisée */
     root.innerHTML = `
       <div class="form-card" style="text-align:center;">
@@ -122,6 +123,7 @@
           <button data-panel="depots">Mes dépôts</button>
           <button data-panel="profil">Mon profil</button>
           <a href="bibliotheque.html">Bibliothèque ↗</a>
+          ${adminLink}
         </nav>
       </aside>
 

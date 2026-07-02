@@ -232,8 +232,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (cta || join) {
     const me = await Auth.me();
     if (me) {
-      const dest = me.role === "admin" ? "admin.html" : "espace-membre.html";
-      if (cta) { cta.textContent = me.role === "admin" ? "Espace admin" : "Mon espace"; cta.href = dest; }
+      if (cta) { cta.textContent = "Mon espace"; cta.href = "espace-membre.html"; }
       if (join) {
         join.textContent = "Se déconnecter";
         join.href = "#";

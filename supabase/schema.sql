@@ -19,6 +19,7 @@ create table public.profiles (
   email        text,
   role         text not null default 'pending'
                check (role in ('pending','membre','abonne','admin')),
+  is_admin     boolean not null default false,   -- privilège admin (indépendant du rôle)
   universite   text,
   faculte      text,
   adhesion_key text,
@@ -88,7 +89,7 @@ create table public.settings (
 -- ---------- is_admin() : SECURITY DEFINER (contourne la RLS) ----------
 create or replace function public.is_admin()
 returns boolean language sql security definer set search_path = public stable as $$
-  select exists (select 1 from public.profiles where id = auth.uid() and role = 'admin');
+  select exists (select 1 from public.profiles where id = auth.uid() and is_admin);
 $$;
 
 -- ---------- Création automatique du profil à l'inscription ----------
