@@ -155,16 +155,16 @@ $$;
 -- ---------- RPC : générer une clé (admin) ----------
 create or replace function public.generate_adhesion_key(p_beneficiaire text)
 returns public.adhesion_keys language plpgsql security definer set search_path = public as $$
-declare chars text := 'ABCDEFGHJKLMNPQRSTUVWXYZ123456789'; code text; k public.adhesion_keys;
+declare chars text := 'ABCDEFGHJKLMNPQRSTUVWXYZ123456789'; v_code text; k public.adhesion_keys;
 begin
   if not public.is_admin() then raise exception 'Réservé aux administrateurs.'; end if;
   loop
-    code := 'AEEIG-2026-' ||
+    v_code := 'AEEIG-2026-' ||
       substr(chars, floor(random()*33)::int + 1, 1) || substr(chars, floor(random()*33)::int + 1, 1) ||
       substr(chars, floor(random()*33)::int + 1, 1) || substr(chars, floor(random()*33)::int + 1, 1);
-    exit when not exists (select 1 from public.adhesion_keys where adhesion_keys.code = code);
+    exit when not exists (select 1 from public.adhesion_keys a where a.code = v_code);
   end loop;
-  insert into public.adhesion_keys (code, beneficiaire, statut) values (code, p_beneficiaire, 'générée')
+  insert into public.adhesion_keys (code, beneficiaire, statut) values (v_code, p_beneficiaire, 'générée')
   returning * into k;
   return k;
 end;
