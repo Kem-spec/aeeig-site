@@ -331,6 +331,35 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
   }
+
+  // Ombre du header au défilement
+  const header = document.querySelector(".site-header");
+  if (header) {
+    const onScroll = () => header.classList.toggle("is-scrolled", window.scrollY > 12);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+  }
+
+  // Apparition douce des sections au défilement (.reveal / .reveal-stagger)
+  const revealEls = document.querySelectorAll(".reveal, .reveal-stagger");
+  if (revealEls.length) {
+    if ("IntersectionObserver" in window) {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("reveal-visible");
+            io.unobserve(entry.target);
+          }
+        });
+      }, { threshold: .12, rootMargin: "0px 0px -60px 0px" });
+      revealEls.forEach(el => io.observe(el));
+      // Filet de sécurité : si l'observateur ne déclenche jamais, ne pas
+      // laisser du contenu invisible indéfiniment.
+      setTimeout(() => revealEls.forEach(el => el.classList.add("reveal-visible")), 2500);
+    } else {
+      revealEls.forEach(el => el.classList.add("reveal-visible"));
+    }
+  }
 });
 
 /* ---------- Rendu : carte actualité ---------- */

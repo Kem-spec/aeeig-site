@@ -38,36 +38,40 @@
 
 <main>
 
-  <!-- ===== Bannière principale (photo plein-cadre) ===== -->
+  <!-- ===== Bannière principale (photo encadrée) ===== -->
   <section class="hero hero-banner">
-    <div class="hero-media" aria-hidden="true">
-      <img src="assets/hero-campus.jpg" alt="">
-      <div class="hero-scrim"></div>
-    </div>
-    <div class="container hero-content">
-      <span class="hero-badge"><span class="dot"></span>Portail officiel de l'association</span>
-      <h1>Unis pour <span class="accent-o">réussir</span>,<br>ensemble pour <span class="accent-g">avancer</span></h1>
-      <p class="hero-lead">
-        L'AEEIG accompagne les étudiants ivoiriens en Guinée tout au long de leur parcours :
-        suivi académique, bibliothèque numérique, entraide et vie associative — réunis sur un seul portail.
-      </p>
-      <div class="hero-actions">
-        <a class="btn btn-primary" id="hero-primary" href="connexion.html#inscription">Créer mon compte</a>
-        <a class="btn btn-glass" href="bibliotheque.html">Découvrir la bibliothèque</a>
+    <div class="container">
+      <div class="hero-frame">
+        <div class="hero-media" aria-hidden="true">
+          <img src="assets/hero-campus.jpg" alt="">
+          <div class="hero-scrim"></div>
+        </div>
+        <div class="hero-content reveal-stagger">
+          <span class="hero-badge"><span class="dot"></span>Portail officiel de l'association</span>
+          <h1>Unis pour <span class="accent-o">réussir</span>,<br>ensemble pour <span class="accent-g">avancer</span></h1>
+          <p class="hero-lead">
+            L'AEEIG accompagne les étudiants ivoiriens en Guinée tout au long de leur parcours :
+            suivi académique, bibliothèque numérique, entraide et vie associative — réunis sur un seul portail.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" id="hero-primary" href="connexion.html#inscription">Créer mon compte</a>
+            <a class="btn btn-glass" href="bibliotheque.html">Découvrir la bibliothèque</a>
+          </div>
+          <div class="hero-stats">
+            <div class="hero-stat"><strong>300+</strong><span>membres actifs</span></div>
+            <div class="hero-stat"><strong>12</strong><span>universités représentées</span></div>
+            <div class="hero-stat"><strong>150+</strong><span>documents en ligne</span></div>
+          </div>
+        </div>
+        <span class="hero-credit">© sakurastudio</span>
       </div>
-      <div class="hero-stats">
-        <div class="hero-stat"><strong>300+</strong><span>membres actifs</span></div>
-        <div class="hero-stat"><strong>12</strong><span>universités représentées</span></div>
-        <div class="hero-stat"><strong>150+</strong><span>documents en ligne</span></div>
-      </div>
     </div>
-    <span class="hero-credit">© sakurastudio</span>
   </section>
 
   <!-- ===== Bloc d'orientation deux profils ===== -->
   <section class="section" style="padding-top: 0;" id="join-block">
     <div class="container">
-      <div class="profiles">
+      <div class="profiles reveal-stagger reveal">
 
         <article class="profile-card profile-member">
           <div class="profile-icon">
@@ -108,43 +112,47 @@
   <!-- ===== Dernières actualités ===== -->
   <section class="section section-alt">
     <div class="container">
-      <div class="section-head">
-        <div>
-          <span class="kicker">Vie de l'association</span>
-          <h2>Dernières actualités</h2>
-          <p>Assemblées, campagnes d'adhésion, sport, entraide : suivez tout ce qui fait vivre la communauté.</p>
+      <div class="frame reveal">
+        <div class="section-head">
+          <div>
+            <span class="kicker">Vie de l'association</span>
+            <h2>Dernières actualités</h2>
+            <p>Assemblées, campagnes d'adhésion, sport, entraide : suivez tout ce qui fait vivre la communauté.</p>
+          </div>
+          <a class="btn btn-outline btn-sm" href="actualites.html">Toutes les actualités</a>
         </div>
-        <a class="btn btn-outline btn-sm" href="actualites.html">Toutes les actualités</a>
+        <div class="news-grid bento reveal-stagger" id="home-news"></div>
       </div>
-      <div class="news-grid" id="home-news"></div>
     </div>
   </section>
 
   <!-- ===== Aperçu bibliothèque ===== -->
   <section class="section">
     <div class="container">
-      <div class="section-head">
-        <div>
-          <span class="kicker">Ressources</span>
-          <h2>La bibliothèque numérique</h2>
-          <p>Mémoires, thèses, cours et guides pratiques, consultables en ligne par les membres et abonnés.</p>
+      <div class="frame reveal">
+        <div class="section-head">
+          <div>
+            <span class="kicker">Ressources</span>
+            <h2>La bibliothèque numérique</h2>
+            <p>Mémoires, thèses, cours et guides pratiques, consultables en ligne par les membres et abonnés.</p>
+          </div>
+          <a class="btn btn-outline btn-sm" href="bibliotheque.html">Explorer la bibliothèque</a>
         </div>
-        <a class="btn btn-outline btn-sm" href="bibliotheque.html">Explorer la bibliothèque</a>
+        <div class="doc-grid reveal-stagger" id="home-docs"></div>
       </div>
-      <div class="doc-grid" id="home-docs"></div>
     </div>
   </section>
 
   <!-- ===== Présentation courte ===== -->
   <section class="section section-alt">
     <div class="container">
-      <div class="section-head">
+      <div class="section-head reveal">
         <div>
           <span class="kicker">Qui sommes-nous ?</span>
           <h2>Une association, trois missions</h2>
         </div>
       </div>
-      <div class="value-grid">
+      <div class="value-grid reveal-stagger reveal">
         <article class="value-card">
           <div class="v-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
@@ -173,7 +181,7 @@
   <!-- ===== CTA final ===== -->
   <section class="section">
     <div class="container">
-      <div class="cta-band">
+      <div class="cta-band reveal">
         <div>
           <h2>Rejoignez le portail AEEIG</h2>
           <p>Membres : créez votre compte avec votre clé d'adhésion. Non-membres : abonnez-vous en quelques minutes.</p>
