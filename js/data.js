@@ -41,7 +41,7 @@ const FILIERES = [
   "Agronomie",
 ];
 
-const NIVEAUX = ["Licence 1", "Licence 2", "Licence 3", "Master 1", "Master 2", "Doctorat"];
+const NIVEAUX = ["Licence 1", "Licence 2", "Licence 3", "Master 1", "Master 2", "Synthèse", "Doctorat"];
 const SEXES = ["Féminin", "Masculin"];
 const DEPOT_TYPES = ["Mémoire", "Thèse", "Article"];
 
@@ -49,5 +49,5 @@ const DEPOT_TYPES = ["Mémoire", "Thèse", "Article"];
 const NIVEAUX_DOC = [
   "1ère année", "2e année", "3e année", "4e année",
   "5e année", "6e année", "7e année",
-  "Master", "Doctorat", "Tous niveaux",
+  "Master", "Synthèse", "Doctorat", "Tous niveaux",
 ];

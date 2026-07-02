@@ -68,6 +68,27 @@
       .reader-foot { font-size: .74rem; }
     }
 
+    /* Lecture PDF : pages rendues en canvas, adaptées à la largeur de l'écran */
+    .pdf-scroll {
+      height: 100%;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 16px 8px 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+    .pdf-page {
+      max-width: 100%;
+      background: #fff;
+      border-radius: 6px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.35);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .pdf-page canvas { display: block; user-select: none; -webkit-user-select: none; }
+
     /* Lecture Word : rendu dans la page, copie et sélection désactivées */
     .docx-scroll { height: 100%; overflow: auto; padding: 28px 16px; }
     .docx-page {
@@ -136,6 +157,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 <script src="js/config.js"></script>
 <script src="js/data.js"></script>
 <script src="js/app.js"></script>
@@ -154,6 +176,17 @@ document.addEventListener("keydown", e => {
   const metaEl = document.getElementById("reader-meta");
 
   function showMsg(html) { main.innerHTML = `<div class="reader-msg">${html}</div>`; }
+
+  // Charge un PDF : worker d'abord ; si blocage/erreur, repli sur le thread principal
+  async function loadPdfDoc(url) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+    const withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))]);
+    try {
+      return await withTimeout(pdfjsLib.getDocument({ url }).promise, 15000);
+    } catch (e) {
+      return await pdfjsLib.getDocument({ url, disableWorker: true }).promise;
+    }
+  }
 
   const docId = new URLSearchParams(location.search).get("doc");
   if (!docId) { showMsg(`<h2 style="color:#fff;">Document introuvable</h2><a class="btn btn-primary" href="bibliotheque.html">Retour à la bibliothèque</a>`); return; }
@@ -187,9 +220,53 @@ document.addEventListener("keydown", e => {
     const name = (doc.file_name || doc.file_path).toLowerCase();
 
     if (/\.pdf$/.test(name)) {
-      // PDF : lecteur natif du navigateur, barre d'outils masquée (pas de bouton
-      // télécharger/imprimer visible)
-      main.innerHTML = `<iframe src="${url}#toolbar=0&navpanes=0" title="${escapeHtml(doc.titre)}"></iframe>`;
+      // PDF : rendu page par page dans le site (PDF.js). Fonctionne sur tous
+      // les appareils (y compris iPhone), s'adapte à la largeur de l'écran,
+      // et n'expose aucune interface de téléchargement/impression.
+      showMsg(`<p>Préparation du document…</p>`);
+      const pdf = await loadPdfDoc(url);
+      metaEl.textContent += ` · ${pdf.numPages} page${pdf.numPages > 1 ? "s" : ""}`;
+
+      main.innerHTML = `<div class="pdf-scroll" id="pdf-scroll"></div>`;
+      const scrollEl = document.getElementById("pdf-scroll");
+      const pageW = Math.min(scrollEl.clientWidth - 16, 900);
+
+      // Gabarits de pages (hauteur estimée d'après la 1re page),
+      // rendus seulement à l'approche de l'écran (léger même à 100+ pages)
+      const p1 = await pdf.getPage(1);
+      const ratio = p1.getViewport({ scale: 1 }).height / p1.getViewport({ scale: 1 }).width;
+      const holders = [];
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const h = document.createElement("div");
+        h.className = "pdf-page";
+        h.dataset.page = i;
+        h.style.width = pageW + "px";
+        h.style.height = Math.round(pageW * ratio) + "px";
+        scrollEl.appendChild(h);
+        holders.push(h);
+      }
+      const io = new IntersectionObserver(entries => {
+        entries.forEach(async en => {
+          if (!en.isIntersecting) return;
+          const el = en.target;
+          io.unobserve(el);
+          if (el.dataset.done) return;
+          el.dataset.done = "1";
+          const page = await pdf.getPage(+el.dataset.page);
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          const scale = pageW / page.getViewport({ scale: 1 }).width;
+          const vp = page.getViewport({ scale: scale * dpr });
+          const canvas = document.createElement("canvas");
+          canvas.width = vp.width;
+          canvas.height = vp.height;
+          canvas.style.width = "100%";
+          canvas.style.height = "auto";
+          await page.render({ canvasContext: canvas.getContext("2d"), viewport: vp }).promise;
+          el.style.height = "auto";
+          el.appendChild(canvas);
+        });
+      }, { root: scrollEl, rootMargin: "800px" });
+      holders.forEach(h => io.observe(h));
     } else if (/\.docx?$/.test(name)) {
       // Word : converti et affiché DANS la page (aucune interface externe,
       // donc aucun bouton de téléchargement)
