@@ -74,6 +74,8 @@
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
 <script src="js/data.js"></script>
 <script src="js/app.js"></script>
 <script>
@@ -82,12 +84,14 @@
   const viewList = document.getElementById("view-list");
   const viewDetail = document.getElementById("view-detail");
   let currentCat = "Toutes";
+  let allNews = [];
 
-  // Filtres par catégorie
-  const cats = ["Toutes", ...new Set(AEEIG.news.map(n => n.categorie))];
-  filtersEl.innerHTML = cats.map(c =>
-    `<button class="chip${c === currentCat ? " active" : ""}" data-cat="${c}">${c}</button>`
-  ).join("");
+  function renderFilters() {
+    const cats = ["Toutes", ...new Set(allNews.map(n => n.categorie).filter(Boolean))];
+    filtersEl.innerHTML = cats.map(c =>
+      `<button class="chip${c === currentCat ? " active" : ""}" data-cat="${escapeHtml(c)}">${escapeHtml(c)}</button>`
+    ).join("");
+  }
   filtersEl.addEventListener("click", e => {
     const btn = e.target.closest(".chip");
     if (!btn) return;
@@ -98,17 +102,17 @@
 
   function renderList() {
     const items = currentCat === "Toutes"
-      ? AEEIG.news
-      : AEEIG.news.filter(n => n.categorie === currentCat);
+      ? allNews
+      : allNews.filter(n => n.categorie === currentCat);
     listEl.innerHTML = items.length
       ? items.map(newsCardHTML).join("")
       : `<div class="empty-state" style="grid-column:1/-1;">Aucune actualité dans cette catégorie pour le moment.</div>`;
   }
 
-  // Détail via ancre (#id-article) — URL partageable
+  // Détail via ancre (#slug) — URL partageable
   function route() {
-    const id = location.hash.slice(1);
-    const article = AEEIG.news.find(n => n.id === id);
+    const slug = location.hash.slice(1);
+    const article = slug ? allNews.find(n => (n.slug || n.id) === slug) : null;
     if (article) {
       document.title = article.titre + " — AEEIG";
       document.getElementById("article-container").innerHTML = `
@@ -116,7 +120,7 @@
         <div class="article-cover ${article.cover}"></div>
         <span class="news-date">${formatDate(article.date)} · <strong style="color:var(--green-deep);">${escapeHtml(article.categorie)}</strong></span>
         <h1 style="margin-top:8px;">${escapeHtml(article.titre)}</h1>
-        <div class="article-body">${article.contenu.split("\n\n").map(p => `<p>${escapeHtml(p)}</p>`).join("")}</div>`;
+        <div class="article-body">${(article.contenu || "").split("\n\n").map(p => `<p>${escapeHtml(p)}</p>`).join("")}</div>`;
       viewList.style.display = "none";
       viewDetail.style.display = "block";
       window.scrollTo(0, 0);
@@ -129,7 +133,12 @@
   }
 
   window.addEventListener("hashchange", route);
-  route();
+
+  (async () => {
+    allNews = await News.list();
+    renderFilters();
+    route();
+  })();
 </script>
 
 </body>

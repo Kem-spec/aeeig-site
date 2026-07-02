@@ -1,174 +1,13 @@
 /* ============================================================
-   AEEIG — Logique applicative partagée (mode maquette)
-   Authentification simulée via localStorage.
-   En production : remplacée par le back-end (sessions, API).
+   AEEIG — Logique applicative (back-end Supabase)
+   Auth réelle + données partagées via le client SB (config.js).
    ============================================================ */
 
-const Auth = {
-  KEY: "aeeig_session",
-
-  get user() {
-    try { return JSON.parse(localStorage.getItem(this.KEY)); }
-    catch { return null; }
-  },
-
-  login(user) {
-    localStorage.setItem(this.KEY, JSON.stringify(user));
-  },
-
-  logout() {
-    localStorage.removeItem(this.KEY);
-    window.location.href = "index.html";
-  },
-
-  // Clés déjà consommées dans cette maquette
-  usedKeys() {
-    try { return JSON.parse(localStorage.getItem("aeeig_used_keys")) || []; }
-    catch { return []; }
-  },
-
-  consumeKey(code) {
-    const used = this.usedKeys();
-    used.push(code);
-    localStorage.setItem("aeeig_used_keys", JSON.stringify(used));
-  },
-
-  // Clés générées par l'admin (persistées pour relier admin ↔ inscription membre)
-  generatedKeys() {
-    try { return JSON.parse(localStorage.getItem("aeeig_gen_keys")) || []; }
-    catch { return []; }
-  },
-
-  addGeneratedKey(key) {
-    const list = this.generatedKeys();
-    list.unshift(key);
-    localStorage.setItem("aeeig_gen_keys", JSON.stringify(list));
-  },
-
-  isKeyValid(code) {
-    const norm = code.trim().toUpperCase();
-    const key = [...this.generatedKeys(), ...AEEIG.demoKeys].find(k => k.code === norm);
-    if (!key) return { ok: false, reason: "Cette clé d'adhésion n'existe pas. Vérifiez la saisie ou contactez la trésorerie." };
-    if (key.statut === "annulée") return { ok: false, reason: "Cette clé a été annulée par l'administration. Contactez la trésorerie." };
-    if (key.statut === "utilisée" || this.usedKeys().includes(key.code))
-      return { ok: false, reason: "Cette clé a déjà été utilisée pour créer un compte." };
-    return { ok: true, key };
-  },
-
-  /* ---- Comptes (mode maquette : stockés dans localStorage) ----
-     NB : le mot de passe est conservé en clair côté navigateur uniquement pour
-     la démonstration. En production, il sera transmis au back-end et haché
-     (Bcrypt/Argon2) — jamais stocké dans le navigateur. */
-  accounts() {
-    try { return JSON.parse(localStorage.getItem("aeeig_accounts")) || []; }
-    catch { return []; }
-  },
-
-  findAccount(email) {
-    const e = (email || "").trim().toLowerCase();
-    return this.accounts().find(a => (a.email || "").toLowerCase() === e);
-  },
-
-  register(user) {
-    const list = this.accounts().filter(a => (a.email || "").toLowerCase() !== user.email.toLowerCase());
-    list.push(user);
-    localStorage.setItem("aeeig_accounts", JSON.stringify(list));
-  },
-
-  registeredMembers() { return this.accounts().filter(a => a.role === "membre"); },
-  registeredSubscribers() { return this.accounts().filter(a => a.role === "abonne"); },
-
-  // Authentifie un couple e-mail / mot de passe et ouvre la session si valide.
-  authenticate(email, pass) {
-    email = (email || "").trim().toLowerCase();
-    if (email === AEEIG.demoAdmin.email && pass === AEEIG.demoAdmin.password) {
-      const u = { nom: "Administration AEEIG", email, role: "admin" };
-      this.login(u);
-      return { ok: true, user: u };
-    }
-    if (email === AEEIG.demoAdmin.email)
-      return { ok: false, reason: "Mot de passe incorrect pour le compte administrateur." };
-
-    const acc = this.findAccount(email);
-    if (acc) {
-      if (acc.password !== pass) return { ok: false, reason: "E-mail ou mot de passe incorrect." };
-      const { password, ...safe } = acc;
-      this.login(safe);
-      return { ok: true, user: safe };
-    }
-
-    // Mode démonstration : toute autre combinaison connecte un membre fictif
-    const demo = {
-      nom: email.split("@")[0].replace(/[._]/g, " ") || "Membre AEEIG",
-      email, role: "membre",
-      universite: "Université Gamal Abdel Nasser de Conakry",
-      demo: true,
-    };
-    this.login(demo);
-    return { ok: true, user: demo };
-  },
-};
-
-/* ---------- Paiement de l'abonnement ----------
-   Mode maquette (simulé) tant que la passerelle n'est pas configurée dans
-   AEEIG.settings.payment. Le jour où les moyens de réception seront disponibles,
-   renseignez gatewayUrl et/ou les numéros marchands : le mode réel s'activera. */
-const Payment = {
-  get config() { return (typeof AEEIG !== "undefined" && AEEIG.settings.payment) || {}; },
-  amount() { return this.config.montant || 150000; },
-  currency() { return this.config.devise || "GNF"; },
-  amountLabel() { return this.amount().toLocaleString("fr-FR") + " " + this.currency(); },
-
-  merchantFor(method) {
-    const c = this.config;
-    if (method === "orange") return c.orangeMoney && c.orangeMoney.merchant;
-    if (method === "mtn")    return c.mtnMoney && c.mtnMoney.merchant;
-    return null;
-  },
-
-  isLive() { return !!(this.config.gatewayUrl); },
-
-  process(payload) {
-    return this.isLive() ? this.processLive(payload) : this.processDemo(payload);
-  },
-
-  processDemo(payload) {
-    return new Promise(resolve => setTimeout(() => resolve({
-      ok: true,
-      ref: "SIM-" + Date.now().toString(36).toUpperCase(),
-      method: payload.method,
-      montant: this.amount(),
-    }), 1500));
-  },
-
-  // PRODUCTION — à compléter avec le prestataire retenu (Orange Money / MTN / carte).
-  processLive(payload) {
-    /* Exemple d'intégration :
-       return fetch(this.config.gatewayUrl, {
-         method: "POST",
-         headers: { "Content-Type": "application/json" },
-         body: JSON.stringify({
-           montant: this.amount(),
-           devise: this.currency(),
-           methode: payload.method,          // "orange" | "mtn" | "carte"
-           telephone: payload.phone,         // numéro Mobile Money à débiter
-           client: payload.email,
-           marchand: this.merchantFor(payload.method),
-           retour: location.origin + "/connexion.html",
-         }),
-       }).then(r => r.json());
-       // La passerelle renvoie ensuite { ok, ref, ... } ou redirige le navigateur.
-    */
-    return Promise.resolve({ ok: false, pending: true, message: "Redirection vers la passerelle de paiement… (à configurer)" });
-  },
-};
-
 /* ---------- Utilitaires ---------- */
-
 function formatDate(iso) {
-  return new Date(iso + "T00:00:00").toLocaleDateString("fr-FR", {
-    day: "numeric", month: "long", year: "numeric",
-  });
+  if (!iso) return "";
+  const d = iso.length <= 10 ? new Date(iso + "T00:00:00") : new Date(iso);
+  return d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 }
 
 function toast(msg) {
@@ -187,18 +26,195 @@ function toast(msg) {
 }
 
 function initials(name) {
-  return name.split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
+  return (name || "?").split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
 }
 
 function escapeHtml(str) {
   const div = document.createElement("div");
-  div.textContent = str;
+  div.textContent = str == null ? "" : str;
   return div.innerHTML;
 }
 
-/* ---------- Header : menu mobile + état connecté ---------- */
+/* ---------- Authentification (Supabase) ---------- */
+const Auth = {
+  _me: undefined,
 
-document.addEventListener("DOMContentLoaded", () => {
+  // Renvoie { id, email, full_name, role, universite, faculte, ... } ou null
+  async me() {
+    if (this._me !== undefined) return this._me;
+    const { data: { user } } = await SB.auth.getUser();
+    if (!user) { this._me = null; return null; }
+    const { data: profile } = await SB.from("profiles").select("*").eq("id", user.id).single();
+    this._me = { id: user.id, email: user.email, ...(profile || {}) };
+    return this._me;
+  },
+
+  async signIn(email, password) {
+    const { data, error } = await SB.auth.signInWithPassword({ email: email.trim(), password });
+    this._me = undefined;
+    return { ok: !error, error, user: data && data.user };
+  },
+
+  async signUp(email, password, fullName) {
+    const { data, error } = await SB.auth.signUp({
+      email: email.trim(), password,
+      options: { data: { full_name: fullName } },
+    });
+    this._me = undefined;
+    return { ok: !error, error, user: data && data.user, session: data && data.session };
+  },
+
+  async signOut() {
+    await SB.auth.signOut();
+    this._me = undefined;
+    window.location.href = "index.html";
+  },
+
+  async redeemKey(code, universite, faculte) {
+    const { data, error } = await SB.rpc("redeem_adhesion_key", {
+      p_code: code, p_universite: universite, p_faculte: faculte,
+    });
+    this._me = undefined;
+    if (error) return { ok: false, reason: error.message };
+    return data;
+  },
+
+  async activateSubscription(ref, methode, montant) {
+    const { data, error } = await SB.rpc("activate_subscription", {
+      p_ref: ref, p_methode: methode, p_montant: montant,
+    });
+    this._me = undefined;
+    if (error) return { ok: false, reason: error.message };
+    return data;
+  },
+
+  async updateProfile(fields) {
+    const me = await this.me();
+    if (!me) return { ok: false };
+    const { error } = await SB.from("profiles").update(fields).eq("id", me.id);
+    this._me = undefined;
+    return { ok: !error, error };
+  },
+};
+
+/* ---------- Paramètres du site ---------- */
+const Settings = {
+  _c: null,
+  async load() {
+    if (this._c) return this._c;
+    const { data } = await SB.from("settings").select("*");
+    const o = {};
+    (data || []).forEach(r => { o[r.key] = r.value; });
+    this._c = o;
+    return o;
+  },
+};
+
+async function injectSettings() {
+  const s = await Settings.load();
+  document.querySelectorAll("[data-setting]").forEach(el => {
+    if (s[el.dataset.setting] != null) el.textContent = s[el.dataset.setting];
+  });
+}
+
+/* ---------- Actualités ---------- */
+const News = {
+  async list({ limit = null } = {}) {
+    let q = SB.from("news").select("*").eq("published", true).order("date", { ascending: false });
+    if (limit) q = q.limit(limit);
+    const { data } = await q;
+    return data || [];
+  },
+  async all() {
+    const { data } = await SB.from("news").select("*").order("date", { ascending: false });
+    return data || [];
+  },
+  async bySlug(slug) {
+    const { data } = await SB.from("news").select("*").eq("slug", slug).maybeSingle();
+    return data;
+  },
+  create(obj) { return SB.from("news").insert(obj).select().single(); },
+  update(id, obj) { return SB.from("news").update(obj).eq("id", id).select().single(); },
+  remove(id) { return SB.from("news").delete().eq("id", id); },
+};
+
+/* ---------- Bibliothèque ---------- */
+const Library = {
+  _byId: {},
+  async list() {
+    const { data } = await SB.from("library_docs").select("*").order("created_at", { ascending: false });
+    (data || []).forEach(d => { this._byId[d.id] = d; });
+    return data || [];
+  },
+  create(obj) { return SB.from("library_docs").insert(obj).select().single(); },
+  remove(id) { return SB.from("library_docs").delete().eq("id", id); },
+};
+
+/* ---------- Espace admin (données) ---------- */
+const Admin = {
+  async keys() {
+    const { data } = await SB.from("adhesion_keys").select("*").order("created_at", { ascending: false });
+    return data || [];
+  },
+  async generateKey(nom) {
+    const { data, error } = await SB.rpc("generate_adhesion_key", { p_beneficiaire: nom });
+    if (error) throw error;
+    return data;
+  },
+  cancelKey(id) { return SB.from("adhesion_keys").update({ statut: "annulée" }).eq("id", id); },
+  async members() {
+    const { data } = await SB.from("profiles").select("*").in("role", ["membre", "admin"]).order("created_at", { ascending: false });
+    return data || [];
+  },
+  async subscribers() {
+    const { data } = await SB.from("subscriptions").select("*, profiles(full_name, email)").order("created_at", { ascending: false });
+    return data || [];
+  },
+  saveSetting(key, value) { return SB.from("settings").upsert({ key, value }); },
+};
+
+/* ---------- Paiement (abonnements) ----------
+   Mode maquette : simulation. Pour activer la vraie passerelle
+   (Orange Money / MTN / carte via CinetPay, PayDunya…), il suffira
+   de renseigner les clés du prestataire et d'implémenter processLive().
+*/
+const Payment = {
+  async merchantFor(method) {
+    const s = await Settings.load();
+    if (method === "orange") return s.merchantOrange || null;
+    if (method === "mtn") return s.merchantMTN || null;
+    return null;
+  },
+  async amountLabel() {
+    const s = await Settings.load();
+    return s.abonnementTarif || "—";
+  },
+  async amount() {
+    const s = await Settings.load();
+    const n = parseInt((s.abonnementTarif || "").replace(/[^0-9]/g, ""), 10);
+    return isNaN(n) ? 0 : n;
+  },
+  // Simulation d'un paiement réussi (à remplacer par processLive en production)
+  async process({ method /*, phone, email */ }) {
+    const montant = await this.amount();
+    await new Promise(r => setTimeout(r, 1200));
+    return { ok: true, ref: "SIM-" + Date.now().toString(36).toUpperCase(), method, montant };
+  },
+  // async processLive({ method, phone, email }) {
+  //   // 1) Créer la transaction chez le prestataire (fetch vers son API)
+  //   // 2) Rediriger l'utilisateur vers l'URL de paiement renvoyée
+  //   // 3) Au retour (webhook/redirect), confirmer puis activate_subscription
+  // }
+};
+
+/* ---------- Slug (pour les URL d'actualités) ---------- */
+function slugify(str) {
+  return (str || "").toString().normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
+}
+
+/* ---------- Header : menu mobile + état connecté ---------- */
+document.addEventListener("DOMContentLoaded", async () => {
   const burger = document.querySelector(".burger");
   const nav = document.querySelector(".main-nav");
   if (burger && nav) {
@@ -208,38 +224,29 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Adapter les boutons du header si une session existe
-  const user = Auth.user;
+  injectSettings();
+
+  // Adapter les boutons du header selon la session
   const cta = document.querySelector("[data-auth-cta]");
-  if (cta && user) {
-    cta.textContent = user.role === "admin" ? "Espace admin" : "Mon espace";
-    cta.href = user.role === "admin" ? "admin.html" : "espace-membre.html";
-    cta.classList.remove("btn-outline");
-    cta.classList.add("btn-primary");
-  }
-
-  // « Rejoindre » devient « Déconnexion » lorsque l'utilisateur est connecté
   const join = document.querySelector("[data-join-cta]");
-  if (join && user) {
-    join.textContent = "Déconnexion";
-    join.setAttribute("href", "#");
-    join.classList.remove("btn-primary");
-    join.classList.add("btn-outline");
-    join.addEventListener("click", e => { e.preventDefault(); Auth.logout(); });
+  if (cta || join) {
+    const me = await Auth.me();
+    if (me) {
+      const dest = me.role === "admin" ? "admin.html" : "espace-membre.html";
+      if (cta) { cta.textContent = me.role === "admin" ? "Espace admin" : "Mon espace"; cta.href = dest; }
+      if (join) {
+        join.textContent = "Se déconnecter";
+        join.href = "#";
+        join.addEventListener("click", e => { e.preventDefault(); Auth.signOut(); });
+      }
+    }
   }
-
-  // Injecter les paramètres modifiables (téléphone trésorerie, tarif…)
-  document.querySelectorAll("[data-setting]").forEach(el => {
-    const key = el.dataset.setting;
-    if (AEEIG.settings[key]) el.textContent = AEEIG.settings[key];
-  });
 });
 
-/* ---------- Rendu : cartes actualité ---------- */
-
+/* ---------- Rendu : carte actualité ---------- */
 function newsCardHTML(article) {
   return `
-    <a class="news-card" href="actualites.html#${article.id}">
+    <a class="news-card" href="actualites.html#${article.slug || article.id}">
       <div class="news-cover ${article.cover}">
         <span class="news-cat">${escapeHtml(article.categorie)}</span>
       </div>
@@ -252,27 +259,26 @@ function newsCardHTML(article) {
     </a>`;
 }
 
-/* ---------- Rendu : cartes document ---------- */
-
+/* ---------- Rendu : carte document ---------- */
 function docCardHTML(doc, { locked = false } = {}) {
   const action = locked
     ? `<a class="btn btn-outline btn-sm" href="connexion.html">Se connecter pour lire</a>`
-    : `<button class="btn btn-green btn-sm" onclick="openViewer(${doc.id})">Lire en ligne</button>`;
+    : `<button class="btn btn-green btn-sm" onclick="openViewer('${doc.id}')">Lire en ligne</button>`;
   return `
     <article class="doc-card">
-      <div class="doc-type ${DOC_TYPE_CLASS[doc.type] || "dt-guide"}">${doc.type.toUpperCase()}</div>
+      <div class="doc-type ${DOC_TYPE_CLASS[doc.type] || "dt-guide"}">${(doc.type || "").toUpperCase()}</div>
       <h3>${escapeHtml(doc.titre)}</h3>
-      <span class="doc-meta">${escapeHtml(doc.auteur)} · ${escapeHtml(doc.filiere)} · ${doc.annee}</span>
+      <span class="doc-meta">${escapeHtml(doc.auteur)} · ${escapeHtml(doc.filiere)} · ${doc.annee || ""}</span>
       <p class="doc-desc">${escapeHtml(doc.resume)}</p>
       ${action}
     </article>`;
 }
 
 /* ---------- Visionneuse (consultation seule, anti-copie) ---------- */
-
-function openViewer(docId) {
-  const doc = AEEIG.library.find(d => d.id === docId);
+async function openViewer(docId) {
+  const doc = Library._byId[docId];
   if (!doc) return;
+  const me = await Auth.me();
 
   let overlay = document.getElementById("viewer-overlay");
   if (!overlay) {
@@ -293,19 +299,15 @@ function openViewer(docId) {
         <button class="btn btn-outline btn-sm" onclick="closeViewer()" aria-label="Fermer la visionneuse">✕ Fermer</button>
       </div>
       <div class="viewer-page" oncontextmenu="return false">
-        <div class="watermark">AEEIG · ${escapeHtml(Auth.user ? Auth.user.nom : "Portail AEEIG")}</div>
-        <p><strong>${escapeHtml(doc.type)} — ${escapeHtml(doc.auteur)} (${doc.annee})</strong></p>
+        <div class="watermark">AEEIG · ${escapeHtml(me ? (me.full_name || me.email) : "Portail AEEIG")}</div>
+        <p><strong>${escapeHtml(doc.type)} — ${escapeHtml(doc.auteur)} (${doc.annee || ""})</strong></p>
         <p><em>${escapeHtml(doc.resume)}</em></p>
-        <p>Ceci est un aperçu de démonstration de la visionneuse sécurisée. En production, le document
-        complet (PDF) s'affichera ici page par page, sans possibilité de téléchargement.</p>
-        <p>Mesures de protection prévues : lecture en flux depuis le serveur (le fichier n'est jamais
-        transmis en entier au navigateur), clic droit et impression désactivés, filigrane personnalisé
-        au nom du lecteur, limitation du nombre de pages affichées simultanément.</p>
-        <p>— — —</p>
-        <p>Chapitre 1 : Introduction … (contenu du document)</p>
+        <p>Le fichier PDF de ce document n'a pas encore été téléversé. Une fois ajouté par
+        l'administration, il s'affichera ici page par page dans la visionneuse sécurisée,
+        sans possibilité de téléchargement.</p>
       </div>
       <div class="viewer-foot">
-        <span>Page 1 / — · Consultation en ligne uniquement</span>
+        <span>Consultation en ligne uniquement</span>
         <span class="viewer-lock">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
           Téléchargement désactivé

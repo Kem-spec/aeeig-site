@@ -221,6 +221,8 @@
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
 <script src="js/data.js"></script>
 <script src="js/app.js"></script>
 <script>
@@ -233,11 +235,23 @@
     alertBox.innerHTML = `<div class="alert alert-${type}" role="alert"><span>${msg}</span></div>`;
   }
 
-  /* ---- Si déjà connecté : proposer d'aller à son espace ---- */
-  if (Auth.user) {
-    const dest = Auth.user.role === "admin" ? "admin.html" : "espace-membre.html";
-    showAlert("info", `Vous êtes déjà connecté. <a href="${dest}">Aller à mon espace</a>.`);
+  // Traduit les messages d'erreur d'authentification Supabase
+  function frAuthError(error) {
+    const m = (error && error.message || "").toLowerCase();
+    if (m.includes("invalid login")) return "E-mail ou mot de passe incorrect.";
+    if (m.includes("already registered") || m.includes("already been")) return "Un compte existe déjà avec cet e-mail. Connectez-vous plutôt.";
+    if (m.includes("password")) return "Mot de passe trop court (8 caractères minimum).";
+    if (m.includes("email")) return "Adresse e-mail invalide.";
+    return "Une erreur est survenue. Réessayez.";
   }
+
+  /* ---- Si déjà connecté : proposer d'aller à son espace ---- */
+  Auth.me().then(me => {
+    if (me) {
+      const dest = me.role === "admin" ? "admin.html" : "espace-membre.html";
+      showAlert("info", `Vous êtes déjà connecté. <a href="${dest}">Aller à mon espace</a>.`);
+    }
+  });
 
   /* ---- Bascule Connexion / Création ---- */
   const viewLogin = document.getElementById("view-login");
@@ -306,50 +320,62 @@
   }
 
   /* ================= CONNEXION ================= */
-  document.getElementById("form-login").addEventListener("submit", e => {
+  document.getElementById("form-login").addEventListener("submit", async e => {
     e.preventDefault();
     if (!validate(e.target)) return;
     const email = document.getElementById("login-email").value.trim();
     const pass = document.getElementById("login-pass").value;
-    const res = Auth.authenticate(email, pass);
-    if (!res.ok) { showAlert("error", res.reason); return; }
-    window.location.href = res.user.role === "admin" ? "admin.html" : "espace-membre.html";
+    const btn = e.target.querySelector("button[type=submit]");
+    btn.disabled = true; btn.textContent = "Connexion…"; clearAlert();
+    const res = await Auth.signIn(email, pass);
+    if (!res.ok) {
+      btn.disabled = false; btn.textContent = "Se connecter";
+      showAlert("error", frAuthError(res.error));
+      return;
+    }
+    const me = await Auth.me();
+    window.location.href = (me && me.role === "admin") ? "admin.html" : "espace-membre.html";
   });
 
   /* ================= INSCRIPTION MEMBRE ================= */
-  document.getElementById("form-member").addEventListener("submit", e => {
+  document.getElementById("form-member").addEventListener("submit", async e => {
     e.preventDefault();
     if (!validate(e.target)) return;
 
-    const keyInput = document.getElementById("m-key");
-    const check = Auth.isKeyValid(keyInput.value);
-    if (!check.ok) {
-      keyInput.closest(".field").classList.add("has-error");
-      document.getElementById("m-key-error").textContent = check.reason;
-      keyInput.focus();
-      showAlert("error", check.reason);
-      return;
-    }
-
+    const code = document.getElementById("m-key").value.trim();
     const email = document.getElementById("m-email").value.trim();
-    if (Auth.findAccount(email)) {
-      showAlert("error", "Un compte existe déjà avec cet e-mail. Connectez-vous plutôt.");
+    const nom = document.getElementById("m-nom").value.trim();
+    const pass = document.getElementById("m-pass").value;
+    const btn = e.target.querySelector("button[type=submit]");
+    btn.disabled = true; btn.textContent = "Création…"; clearAlert();
+
+    // 1) Vérifier la clé AVANT de créer le compte
+    const check = await SB.rpc("check_adhesion_key", { p_code: code });
+    if (check.error || !check.data || !check.data.ok) {
+      btn.disabled = false; btn.textContent = "Créer mon compte membre";
+      const reason = (check.data && check.data.reason) || "Clé d'adhésion invalide.";
+      document.getElementById("m-key").closest(".field").classList.add("has-error");
+      document.getElementById("m-key-error").textContent = reason;
+      showAlert("error", reason);
       return;
     }
 
-    Auth.consumeKey(check.key.code);
-    const user = {
-      nom: document.getElementById("m-nom").value.trim(),
-      email,
-      role: "membre",
-      universite: selectValue("m-univ"),
-      faculte: selectValue("m-fac"),
-      cle: check.key.code,
-      password: document.getElementById("m-pass").value,
-    };
-    Auth.register(user);
-    const { password, ...safe } = user;
-    Auth.login(safe);
+    // 2) Créer le compte (authentification)
+    const reg = await Auth.signUp(email, pass, nom);
+    if (!reg.ok) {
+      btn.disabled = false; btn.textContent = "Créer mon compte membre";
+      showAlert("error", frAuthError(reg.error));
+      return;
+    }
+    if (!reg.session) {
+      btn.disabled = false; btn.textContent = "Créer mon compte membre";
+      showAlert("info", "Compte créé. Confirmez votre e-mail, puis connectez-vous pour finaliser votre adhésion.");
+      return;
+    }
+
+    // 3) Consommer la clé + compléter le profil
+    const red = await Auth.redeemKey(code, selectValue("m-univ"), selectValue("m-fac"));
+    if (!red.ok) { showAlert("error", red.reason || "La clé n'a pas pu être validée."); }
     window.location.href = "espace-membre.html";
   });
 
@@ -359,69 +385,64 @@
   const phoneInput = document.getElementById("s-phone");
   const merchantNote = document.getElementById("s-merchant-note");
 
-  payMethodSel.addEventListener("change", () => {
+  payMethodSel.addEventListener("change", async () => {
     const m = payMethodSel.value;
     const mobile = (m === "orange" || m === "mtn");
     phoneField.hidden = !mobile;
     phoneInput.required = mobile;
     if (mobile) {
-      const merch = Payment.merchantFor(m);
+      const [merch, label] = await Promise.all([Payment.merchantFor(m), Payment.amountLabel()]);
       merchantNote.textContent = merch
-        ? `Un débit de ${Payment.amountLabel()} sera demandé sur ce numéro. Marchand AEEIG : ${merch}.`
+        ? `Un débit de ${label} sera demandé sur ce numéro. Marchand AEEIG : ${merch}.`
         : `Le numéro marchand AEEIG sera communiqué lors de la confirmation du paiement.`;
     } else {
       phoneInput.value = "";
     }
   });
 
-  document.getElementById("form-sub").addEventListener("submit", e => {
+  document.getElementById("form-sub").addEventListener("submit", async e => {
     e.preventDefault();
     if (!validate(e.target)) return;
 
     const email = document.getElementById("s-email").value.trim();
-    if (Auth.findAccount(email)) {
-      showAlert("error", "Un compte existe déjà avec cet e-mail. Connectez-vous plutôt.");
+    const nom = document.getElementById("s-nom").value.trim();
+    const pass = document.getElementById("s-pass").value;
+    const btn = document.getElementById("s-submit");
+    btn.disabled = true; btn.textContent = "Création du compte…"; clearAlert();
+
+    // 1) Créer le compte
+    const reg = await Auth.signUp(email, pass, nom);
+    if (!reg.ok) {
+      btn.disabled = false; btn.textContent = "Payer et activer mon abonnement";
+      showAlert("error", frAuthError(reg.error));
+      return;
+    }
+    if (!reg.session) {
+      btn.disabled = false; btn.textContent = "Payer et activer mon abonnement";
+      showAlert("info", "Compte créé. Confirmez votre e-mail, puis connectez-vous pour régler votre abonnement.");
       return;
     }
 
-    const btn = document.getElementById("s-submit");
-    btn.disabled = true;
+    // 2) Paiement
     btn.textContent = "Paiement en cours…";
-    clearAlert();
+    let result;
+    try {
+      result = await Payment.process({ method: payMethodSel.value, phone: phoneInput.value.trim(), email });
+    } catch { result = { ok: false }; }
+    if (!result.ok) {
+      btn.disabled = false; btn.textContent = "Payer et activer mon abonnement";
+      showAlert(result.message ? "info" : "error", result.message || "Le paiement n'a pas abouti. Réessayez ou changez de moyen de paiement.");
+      return;
+    }
 
-    Payment.process({ method: payMethodSel.value, phone: phoneInput.value.trim(), email })
-      .then(result => {
-        if (!result.ok) {
-          btn.disabled = false;
-          btn.textContent = "Payer et activer mon abonnement";
-          showAlert("info", result.message || "Paiement en attente de confirmation.");
-          return;
-        }
-        const fin = new Date();
-        fin.setFullYear(fin.getFullYear() + 1);
-        const user = {
-          nom: document.getElementById("s-nom").value.trim(),
-          email,
-          role: "abonne",
-          finAbonnement: fin.toISOString().slice(0, 10),
-          paiement: {
-            ref: result.ref,
-            methode: result.method,
-            montant: result.montant,
-            date: new Date().toISOString().slice(0, 10),
-          },
-          password: document.getElementById("s-pass").value,
-        };
-        Auth.register(user);
-        const { password, ...safe } = user;
-        Auth.login(safe);
-        window.location.href = "espace-membre.html";
-      })
-      .catch(() => {
-        btn.disabled = false;
-        btn.textContent = "Payer et activer mon abonnement";
-        showAlert("error", "Le paiement n'a pas abouti. Réessayez ou changez de moyen de paiement.");
-      });
+    // 3) Enregistrer l'abonnement en base
+    const act = await Auth.activateSubscription(result.ref, result.method, result.montant);
+    if (!act.ok) {
+      btn.disabled = false; btn.textContent = "Payer et activer mon abonnement";
+      showAlert("error", act.reason || "L'activation de l'abonnement a échoué.");
+      return;
+    }
+    window.location.href = "espace-membre.html";
   });
 </script>
 

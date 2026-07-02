@@ -83,6 +83,8 @@
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
 <script src="js/data.js"></script>
 <script src="js/app.js"></script>
 <script>
@@ -91,17 +93,10 @@
   const typesEl = document.getElementById("lib-types");
   const filieresEl = document.getElementById("lib-filieres");
   const countEl = document.getElementById("lib-count");
-  const isLogged = !!Auth.user;
 
-  if (!isLogged) document.getElementById("lib-locked").style.display = "flex";
-
+  let isLogged = false;
+  let allDocs = [];
   let fType = "Tous", fFiliere = "Toutes", q = "";
-
-  const types = ["Tous", ...new Set(AEEIG.library.map(d => d.type))];
-  const filieres = ["Toutes", ...new Set(AEEIG.library.map(d => d.filiere))];
-
-  typesEl.innerHTML = types.map(t => `<button class="chip${t === "Tous" ? " active" : ""}" data-v="${t}">${t}</button>`).join("");
-  filieresEl.innerHTML = filieres.map(f => `<button class="chip${f === "Toutes" ? " active" : ""}" data-v="${f}">${f}</button>`).join("");
 
   typesEl.addEventListener("click", e => {
     const btn = e.target.closest(".chip"); if (!btn) return;
@@ -118,10 +113,10 @@
   qInput.addEventListener("input", () => { q = qInput.value.toLowerCase().trim(); render(); });
 
   function render() {
-    const items = AEEIG.library.filter(d =>
+    const items = allDocs.filter(d =>
       (fType === "Tous" || d.type === fType) &&
       (fFiliere === "Toutes" || d.filiere === fFiliere) &&
-      (!q || (d.titre + " " + d.auteur + " " + d.filiere + " " + d.resume).toLowerCase().includes(q))
+      (!q || ((d.titre || "") + " " + (d.auteur || "") + " " + (d.filiere || "") + " " + (d.resume || "")).toLowerCase().includes(q))
     );
     countEl.textContent = items.length + " document" + (items.length > 1 ? "s" : "") + " trouvé" + (items.length > 1 ? "s" : "");
     grid.innerHTML = items.length
@@ -132,7 +127,18 @@
          </div>`;
   }
 
-  render();
+  (async () => {
+    const [docs, me] = await Promise.all([Library.list(), Auth.me()]);
+    allDocs = docs;
+    isLogged = !!me;
+    if (!isLogged) document.getElementById("lib-locked").style.display = "flex";
+
+    const types = ["Tous", ...new Set(allDocs.map(d => d.type).filter(Boolean))];
+    const filieres = ["Toutes", ...new Set(allDocs.map(d => d.filiere).filter(Boolean))];
+    typesEl.innerHTML = types.map(t => `<button class="chip${t === "Tous" ? " active" : ""}" data-v="${escapeHtml(t)}">${escapeHtml(t)}</button>`).join("");
+    filieresEl.innerHTML = filieres.map(f => `<button class="chip${f === "Toutes" ? " active" : ""}" data-v="${escapeHtml(f)}">${escapeHtml(f)}</button>`).join("");
+    render();
+  })();
 </script>
 
 </body>

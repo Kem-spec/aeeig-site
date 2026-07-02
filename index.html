@@ -233,16 +233,25 @@
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
 <script src="js/data.js"></script>
 <script src="js/app.js"></script>
 <script>
-  // Accueil : 3 dernières actualités + 4 documents récents
-  document.getElementById("home-news").innerHTML =
-    AEEIG.news.slice(0, 3).map(newsCardHTML).join("");
-
-  const isLogged = !!Auth.user;
-  document.getElementById("home-docs").innerHTML =
-    AEEIG.library.slice(0, 4).map(d => docCardHTML(d, { locked: !isLogged })).join("");
+  // Accueil : 3 dernières actualités + 4 documents récents (données Supabase)
+  (async () => {
+    const [news, docs, me] = await Promise.all([
+      News.list({ limit: 3 }),
+      Library.list(),
+      Auth.me(),
+    ]);
+    document.getElementById("home-news").innerHTML =
+      news.length ? news.map(newsCardHTML).join("")
+                  : `<div class="empty-state" style="grid-column:1/-1;">Aucune actualité pour le moment.</div>`;
+    const isLogged = !!me;
+    document.getElementById("home-docs").innerHTML =
+      docs.slice(0, 4).map(d => docCardHTML(d, { locked: !isLogged })).join("");
+  })();
 </script>
 
 </body>
