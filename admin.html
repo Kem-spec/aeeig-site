@@ -17,7 +17,7 @@
 <header class="site-header">
   <div class="nav-wrap">
     <a class="brand" href="index.html">
-      <img src="assets/logo-full.png" alt="AEEIG — Association des Étudiants Ivoiriens en Guinée">
+      <img src="assets/logo-full.png" alt="AEEIG — Amicale des Élèves et Étudiants Ivoiriens de Guinée">
       <span class="brand-sub">Espace administrateur</span>
     </a>
     <div class="nav-cta">
@@ -36,9 +36,9 @@
     <div class="footer-grid">
       <div>
         <div class="footer-brand">
-          <img src="assets/logo-full.png" alt="AEEIG — Association des Étudiants Ivoiriens en Guinée">
+          <img src="assets/logo-full.png" alt="AEEIG — Amicale des Élèves et Étudiants Ivoiriens de Guinée">
         </div>
-        <p style="font-size:.9rem;">Association des Étudiants Ivoiriens en Guinée. Unis pour réussir, ensemble pour avancer.</p>
+        <p style="font-size:.9rem;">Amicale des Élèves et Étudiants Ivoiriens de Guinée. Unis pour réussir, ensemble pour avancer.</p>
       </div>
       <div>
         <h4>Navigation</h4>
@@ -481,6 +481,7 @@
           <div class="field"><label for="d-annee">Année</label><input type="number" id="d-annee" value="2026"></div>
         </div>
         <div class="field" id="d-filiere-other" hidden><label for="d-filiere-other-input">Précisez la filière</label><input type="text" id="d-filiere-other-input"></div>
+        <div class="field"><label for="d-niveau">Niveau visé</label><select id="d-niveau"><option value="">— Choisir —</option>${NIVEAUX_DOC.map(n => `<option>${n}</option>`).join("")}</select></div>
         <div class="field"><label for="d-resume">Résumé</label><textarea id="d-resume" rows="3"></textarea></div>
         <div class="field">
           <label for="d-file">Fichier (PDF, Word, PowerPoint, Excel…)</label>
@@ -508,6 +509,7 @@
         type: document.getElementById("d-type").value,
         filiere: selectFieldValue("d-filiere"),
         annee: parseInt(document.getElementById("d-annee").value, 10) || null,
+        niveau: document.getElementById("d-niveau").value,
         resume: document.getElementById("d-resume").value.trim(),
       };
       // Téléversement du fichier si fourni

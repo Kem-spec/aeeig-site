@@ -276,8 +276,8 @@ img, svg { max-width: 100%; }
   line-height: 1.02;
   text-shadow: 0 2px 20px rgba(0,0,0,.28);
 }
-.hero-banner h1 .accent-o { color: #FFB454; }
-.hero-banner h1 .accent-g { color: #4FD1A0; }
+.hero-banner h1 .accent-o { color: #FFA320; }   /* orange franc, lisible sur le voile sombre */
+.hero-banner h1 .accent-g { color: #38D67F; }   /* vert net, écho au vert du logo */
 .hero-banner .hero-lead { color: rgba(255,255,255,.9); max-width: 40em; font-size: 1.14rem; }
 .hero-banner .hero-stats { border-top-color: rgba(255,255,255,.25); }
 .hero-banner .hero-stat { border-right-color: rgba(255,255,255,.25); }

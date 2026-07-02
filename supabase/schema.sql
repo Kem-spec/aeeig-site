@@ -61,6 +61,7 @@ create table public.library_docs (
   auteur     text,
   type       text,
   filiere    text,
+  niveau     text,
   annee      int,
   resume     text,
   file_path  text,

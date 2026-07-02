@@ -17,8 +17,8 @@
 <header class="site-header">
   <div class="nav-wrap">
     <a class="brand" href="index.html">
-      <img src="assets/logo-full.png" alt="AEEIG — Association des Étudiants Ivoiriens en Guinée">
-      <span class="brand-sub">Étudiants ivoiriens en Guinée</span>
+      <img src="assets/logo-full.png" alt="AEEIG — Amicale des Élèves et Étudiants Ivoiriens de Guinée">
+      <span class="brand-sub">Élèves et étudiants ivoiriens de Guinée</span>
     </a>
     <nav class="main-nav" aria-label="Navigation principale">
       <a href="index.html">Accueil</a>
@@ -44,9 +44,9 @@
     <div class="footer-grid">
       <div>
         <div class="footer-brand">
-          <img src="assets/logo-full.png" alt="AEEIG — Association des Étudiants Ivoiriens en Guinée">
+          <img src="assets/logo-full.png" alt="AEEIG — Amicale des Élèves et Étudiants Ivoiriens de Guinée">
         </div>
-        <p style="font-size:.9rem;">Association des Étudiants Ivoiriens en Guinée. Unis pour réussir, ensemble pour avancer.</p>
+        <p style="font-size:.9rem;">Amicale des Élèves et Étudiants Ivoiriens de Guinée. Unis pour réussir, ensemble pour avancer.</p>
       </div>
       <div>
         <h4>Navigation</h4>
@@ -385,6 +385,7 @@
       </div>
       <div class="field"><label for="df-filiere">Filière</label><select id="df-filiere" data-other="df-filiere-other">${optionList(FILIERES, me.faculte || "")}</select></div>
       <div class="field" id="df-filiere-other" hidden><label for="df-filiere-other-input">Précisez la filière</label><input type="text" id="df-filiere-other-input"></div>
+      <div class="field"><label for="df-niveau">Niveau visé</label><select id="df-niveau"><option value="">— Choisir —</option>${NIVEAUX_DOC.map(n => `<option>${n}</option>`).join("")}</select></div>
       <div class="field"><label for="df-resume">Résumé</label><textarea id="df-resume" rows="3"></textarea></div>
       <div class="field"><label for="df-file">Fichier (PDF, Word, PowerPoint) <span class="req">*</span></label><input type="file" id="df-file" accept=".pdf,.doc,.docx,.ppt,.pptx" required></div>
       <div style="display:flex; gap:10px;"><button type="submit" class="btn btn-primary">Soumettre</button><button type="button" class="btn btn-outline" id="df-cancel">Annuler</button></div>
@@ -402,6 +403,7 @@
         const res = await Library.create({
           titre, type: document.getElementById("df-type").value,
           filiere: selectFieldValue("df-filiere"),
+          niveau: document.getElementById("df-niveau").value,
           annee: parseInt(document.getElementById("df-annee").value, 10) || null,
           resume: document.getElementById("df-resume").value.trim(),
           file_path: up.path, file_name: up.name, status: "pending", submitted_by: me.id,

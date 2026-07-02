@@ -44,3 +44,10 @@ const FILIERES = [
 const NIVEAUX = ["Licence 1", "Licence 2", "Licence 3", "Master 1", "Master 2", "Doctorat"];
 const SEXES = ["Féminin", "Masculin"];
 const DEPOT_TYPES = ["Mémoire", "Thèse", "Article"];
+
+// Niveau visé par un document (les cursus type médecine vont jusqu'à 7 ans)
+const NIVEAUX_DOC = [
+  "1ère année", "2e année", "3e année", "4e année",
+  "5e année", "6e année", "7e année",
+  "Master", "Doctorat", "Tous niveaux",
+];

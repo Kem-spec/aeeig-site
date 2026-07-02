@@ -67,6 +67,46 @@
       .reader-bar h1 { font-size: .9rem; }
       .reader-foot { font-size: .74rem; }
     }
+
+    /* Lecture Word : rendu dans la page, copie et sélection désactivées */
+    .docx-scroll { height: 100%; overflow: auto; padding: 28px 16px; }
+    .docx-page {
+      position: relative;
+      max-width: 800px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 8px;
+      padding: 56px 64px;
+      font-size: 1.02rem;
+      line-height: 1.75;
+      user-select: none;
+      -webkit-user-select: none;
+      box-shadow: 0 10px 40px rgba(0,0,0,.35);
+    }
+    .docx-page img { max-width: 100%; height: auto; }
+    .docx-page table { border-collapse: collapse; width: 100%; }
+    .docx-page td, .docx-page th { border: 1px solid #ccc; padding: 6px 10px; }
+    .docx-watermark {
+      position: sticky;
+      top: 40%;
+      display: block;
+      height: 0;
+      text-align: center;
+      font-family: var(--font-head);
+      font-size: 2.6rem;
+      font-weight: 800;
+      color: rgba(14, 122, 82, .08);
+      transform: rotate(-22deg);
+      pointer-events: none;
+      z-index: 1;
+      white-space: nowrap;
+    }
+    @media (max-width: 640px) { .docx-page { padding: 28px 20px; } }
+
+    /* Impression bloquée : la page imprimée sort vide */
+    @media print {
+      body { visibility: hidden !important; display: none !important; }
+    }
   </style>
 </head>
 <body oncontextmenu="return false">
@@ -95,10 +135,19 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
 <script src="js/config.js"></script>
 <script src="js/data.js"></script>
 <script src="js/app.js"></script>
 <script>
+// Blocage des raccourcis d'impression / enregistrement sur cette page
+document.addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && ["p", "s"].includes(e.key.toLowerCase())) {
+    e.preventDefault();
+    toast("Impression et enregistrement désactivés — lecture en ligne uniquement.");
+  }
+});
+
 (async () => {
   const main = document.getElementById("reader-main");
   const titleEl = document.getElementById("doc-title");
@@ -131,25 +180,42 @@
     return;
   }
 
+  const watermark = escapeHtml(me.full_name || me.email);
+
   try {
     const url = await Storage.signedDocUrl(doc.file_path);
     const name = (doc.file_name || doc.file_path).toLowerCase();
 
     if (/\.pdf$/.test(name)) {
-      // PDF : affiché nativement par le navigateur
+      // PDF : lecteur natif du navigateur, barre d'outils masquée (pas de bouton
+      // télécharger/imprimer visible)
       main.innerHTML = `<iframe src="${url}#toolbar=0&navpanes=0" title="${escapeHtml(doc.titre)}"></iframe>`;
-    } else if (/\.(doc|docx|ppt|pptx|xls|xlsx)$/.test(name)) {
-      // Word / PowerPoint / Excel : rendus dans la visionneuse Office embarquée
-      const office = "https://view.officeapps.live.com/op/embed.aspx?src=" + encodeURIComponent(url);
-      main.innerHTML = `<iframe src="${office}" title="${escapeHtml(doc.titre)}"></iframe>`;
+    } else if (/\.docx?$/.test(name)) {
+      // Word : converti et affiché DANS la page (aucune interface externe,
+      // donc aucun bouton de téléchargement)
+      showMsg(`<p>Préparation du document…</p>`);
+      const buf = await (await fetch(url)).arrayBuffer();
+      const result = await mammoth.convertToHtml({ arrayBuffer: buf });
+      main.innerHTML = `
+        <div class="docx-scroll">
+          <div class="docx-page" oncontextmenu="return false">
+            <div class="docx-watermark" aria-hidden="true">AEEIG · ${watermark}</div>
+            ${result.value}
+          </div>
+        </div>`;
     } else if (/\.(jpg|jpeg|png|gif|webp)$/.test(name)) {
-      // Image : affichée directement, centrée
+      // Image : affichée directement
       main.innerHTML = `<div style="height:100%; overflow:auto; display:flex; align-items:flex-start; justify-content:center; padding:20px;">
         <img src="${url}" alt="${escapeHtml(doc.titre)}" style="max-width:100%; height:auto; border-radius:8px;" oncontextmenu="return false" draggable="false"></div>`;
     } else {
-      // Format inconnu : tentative via la visionneuse Google Docs
-      const gview = "https://docs.google.com/gview?embedded=true&url=" + encodeURIComponent(url);
-      main.innerHTML = `<iframe src="${gview}" title="${escapeHtml(doc.titre)}"></iframe>`;
+      // PowerPoint / Excel / autres : pas de visionneuse protégée fiable dans le
+      // navigateur — on demande la conversion en PDF plutôt que d'exposer un
+      // lecteur externe avec option de téléchargement.
+      showMsg(`<h2 style="color:#fff;">Format à convertir</h2>
+        <p>Pour garantir une lecture protégée (sans téléchargement), les fichiers
+        <strong>PowerPoint et Excel</strong> doivent être convertis en <strong>PDF</strong>
+        avant leur publication dans la bibliothèque. Signalez ce document à l'administration.</p>
+        <a class="btn btn-primary" href="bibliotheque.html">Retour à la bibliothèque</a>`);
     }
   } catch (e) {
     showMsg(`<h2 style="color:#fff;">Impossible d'ouvrir ce document</h2><p>${escapeHtml(e.message || "Vérifiez que votre compte est bien membre ou abonné.")}</p><a class="btn btn-primary" href="bibliotheque.html">Retour à la bibliothèque</a>`);

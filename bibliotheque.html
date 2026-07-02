@@ -17,8 +17,8 @@
 <header class="site-header">
   <div class="nav-wrap">
     <a class="brand" href="index.html">
-      <img src="assets/logo-full.png" alt="AEEIG — Association des Étudiants Ivoiriens en Guinée">
-      <span class="brand-sub">Étudiants ivoiriens en Guinée</span>
+      <img src="assets/logo-full.png" alt="AEEIG — Amicale des Élèves et Étudiants Ivoiriens de Guinée">
+      <span class="brand-sub">Élèves et étudiants ivoiriens de Guinée</span>
     </a>
     <nav class="main-nav" aria-label="Navigation principale">
       <a href="index.html">Accueil</a>
@@ -64,7 +64,8 @@
         </div>
         <div class="chip-row" id="lib-types"></div>
       </div>
-      <div class="chip-row" id="lib-filieres" style="margin-bottom: 28px;"></div>
+      <div class="chip-row" id="lib-filieres" style="margin-bottom: 12px;"></div>
+      <div class="chip-row" id="lib-niveaux" style="margin-bottom: 28px;"></div>
 
       <p class="doc-meta" id="lib-count" style="margin-bottom:16px;"></p>
       <div class="doc-grid reveal-stagger reveal-visible" id="lib-grid"></div>
@@ -79,9 +80,9 @@
     <div class="footer-grid">
       <div>
         <div class="footer-brand">
-          <img src="assets/logo-full.png" alt="AEEIG — Association des Étudiants Ivoiriens en Guinée">
+          <img src="assets/logo-full.png" alt="AEEIG — Amicale des Élèves et Étudiants Ivoiriens de Guinée">
         </div>
-        <p style="font-size:.9rem;">Association des Étudiants Ivoiriens en Guinée. Unis pour réussir, ensemble pour avancer.</p>
+        <p style="font-size:.9rem;">Amicale des Élèves et Étudiants Ivoiriens de Guinée. Unis pour réussir, ensemble pour avancer.</p>
       </div>
       <div>
         <h4>Navigation</h4>
@@ -131,11 +132,12 @@
   const qInput = document.getElementById("lib-q");
   const typesEl = document.getElementById("lib-types");
   const filieresEl = document.getElementById("lib-filieres");
+  const niveauxEl = document.getElementById("lib-niveaux");
   const countEl = document.getElementById("lib-count");
 
   let isLogged = false;
   let allDocs = [];
-  let fType = "Tous", fFiliere = "Toutes", q = "";
+  let fType = "Tous", fFiliere = "Toutes", fNiveau = "Tous niveaux*", q = "";
 
   typesEl.addEventListener("click", e => {
     const btn = e.target.closest(".chip"); if (!btn) return;
@@ -149,13 +151,20 @@
     filieresEl.querySelectorAll(".chip").forEach(c => c.classList.toggle("active", c === btn));
     render();
   });
+  niveauxEl.addEventListener("click", e => {
+    const btn = e.target.closest(".chip"); if (!btn) return;
+    fNiveau = btn.dataset.v;
+    niveauxEl.querySelectorAll(".chip").forEach(c => c.classList.toggle("active", c === btn));
+    render();
+  });
   qInput.addEventListener("input", () => { q = qInput.value.toLowerCase().trim(); render(); });
 
   function render() {
     const items = allDocs.filter(d =>
       (fType === "Tous" || d.type === fType) &&
       (fFiliere === "Toutes" || d.filiere === fFiliere) &&
-      (!q || ((d.titre || "") + " " + (d.auteur || "") + " " + (d.filiere || "") + " " + (d.resume || "")).toLowerCase().includes(q))
+      (fNiveau === "Tous niveaux*" || d.niveau === fNiveau) &&
+      (!q || ((d.titre || "") + " " + (d.auteur || "") + " " + (d.filiere || "") + " " + (d.niveau || "") + " " + (d.resume || "")).toLowerCase().includes(q))
     );
     countEl.textContent = items.length + " document" + (items.length > 1 ? "s" : "") + " trouvé" + (items.length > 1 ? "s" : "");
     grid.innerHTML = items.length
@@ -174,8 +183,15 @@
 
     const types = ["Tous", ...new Set(allDocs.map(d => d.type).filter(Boolean))];
     const filieres = ["Toutes", ...new Set(allDocs.map(d => d.filiere).filter(Boolean))];
+    // Niveaux présents dans le catalogue, dans l'ordre pédagogique
+    const present = new Set(allDocs.map(d => d.niveau).filter(Boolean));
+    const niveaux = NIVEAUX_DOC.filter(n => present.has(n));
     typesEl.innerHTML = types.map(t => `<button class="chip${t === "Tous" ? " active" : ""}" data-v="${escapeHtml(t)}">${escapeHtml(t)}</button>`).join("");
     filieresEl.innerHTML = filieres.map(f => `<button class="chip${f === "Toutes" ? " active" : ""}" data-v="${escapeHtml(f)}">${escapeHtml(f)}</button>`).join("");
+    niveauxEl.innerHTML = niveaux.length
+      ? `<button class="chip active" data-v="Tous niveaux*">Tous les niveaux</button>` +
+        niveaux.map(n => `<button class="chip" data-v="${escapeHtml(n)}">${escapeHtml(n)}</button>`).join("")
+      : "";
     render();
   })();
 </script>

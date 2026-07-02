@@ -394,7 +394,7 @@ function docCardHTML(doc, { locked = false } = {}) {
     <article class="doc-card">
       <div class="doc-type ${DOC_TYPE_CLASS[doc.type] || "dt-guide"}">${(doc.type || "").toUpperCase()}</div>
       <h3>${escapeHtml(doc.titre)}</h3>
-      <span class="doc-meta">${escapeHtml(doc.auteur)} · ${escapeHtml(doc.filiere)} · ${doc.annee || ""}</span>
+      <span class="doc-meta">${escapeHtml(doc.auteur)} · ${escapeHtml(doc.filiere)}${doc.niveau ? " · " + escapeHtml(doc.niveau) : ""} · ${doc.annee || ""}</span>
       <p class="doc-desc">${escapeHtml(doc.resume)}</p>
       ${action}
     </article>`;
