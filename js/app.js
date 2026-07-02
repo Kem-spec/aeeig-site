@@ -400,73 +400,9 @@ function docCardHTML(doc, { locked = false } = {}) {
     </article>`;
 }
 
-/* ---------- Visionneuse (consultation seule, anti-copie) ---------- */
-async function openViewer(docId) {
-  const doc = Library._byId[docId];
-  if (!doc) return;
-  const me = await Auth.me();
-
-  let overlay = document.getElementById("viewer-overlay");
-  if (!overlay) {
-    overlay = document.createElement("div");
-    overlay.id = "viewer-overlay";
-    overlay.className = "viewer-overlay";
-    overlay.setAttribute("role", "dialog");
-    overlay.setAttribute("aria-modal", "true");
-    document.body.appendChild(overlay);
-    overlay.addEventListener("click", e => { if (e.target === overlay) closeViewer(); });
-    document.addEventListener("keydown", e => { if (e.key === "Escape") closeViewer(); });
-  }
-
-  const watermark = escapeHtml(me ? (me.full_name || me.email) : "Portail AEEIG");
-  let body;
-  if (doc.file_path) {
-    const isPdf = /\.pdf$/i.test(doc.file_name || doc.file_path);
-    try {
-      const url = await Storage.signedDocUrl(doc.file_path);
-      body = isPdf
-        ? `<iframe src="${url}#toolbar=0" style="width:100%; height:100%; border:none;" title="${escapeHtml(doc.titre)}"></iframe>`
-        : `<div style="padding:40px 24px; text-align:center;">
-             <p><strong>${escapeHtml(doc.file_name || "Document")}</strong></p>
-             <p style="color:var(--ink-soft);">Ce format ne s'affiche pas directement dans le navigateur.</p>
-             <a class="btn btn-primary" href="${url}" target="_blank" rel="noopener">Ouvrir le document</a>
-           </div>`;
-    } catch (e) {
-      body = `<div style="padding:40px 24px;"><p>Impossible d'ouvrir ce document.</p>
-              <p style="color:var(--ink-soft); font-size:.9rem;">${escapeHtml(e.message || "")}</p></div>`;
-    }
-  } else {
-    body = `<div class="viewer-page" oncontextmenu="return false">
-        <div class="watermark">AEEIG · ${watermark}</div>
-        <p><strong>${escapeHtml(doc.type)} — ${escapeHtml(doc.auteur)} (${doc.annee || ""})</strong></p>
-        <p><em>${escapeHtml(doc.resume)}</em></p>
-        <p>Aucun fichier n'a encore été joint à ce document.</p>
-      </div>`;
-  }
-
-  overlay.innerHTML = `
-    <div class="viewer">
-      <div class="viewer-head">
-        <h3>${escapeHtml(doc.titre)}</h3>
-        <button class="btn btn-outline btn-sm" onclick="closeViewer()" aria-label="Fermer la visionneuse">✕ Fermer</button>
-      </div>
-      <div class="viewer-frame" style="flex:1; overflow:auto; background:var(--surface);">${body}</div>
-      <div class="viewer-foot">
-        <span>Consultation réservée aux membres et abonnés · ${watermark}</span>
-        <span class="viewer-lock">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-          Lien sécurisé temporaire
-        </span>
-      </div>
-    </div>`;
-  overlay.classList.add("open");
-  document.body.style.overflow = "hidden";
-}
-
-function closeViewer() {
-  const overlay = document.getElementById("viewer-overlay");
-  if (overlay) {
-    overlay.classList.remove("open");
-    document.body.style.overflow = "";
-  }
+/* ---------- Lecture des documents ----------
+   S'ouvre dans un onglet dédié (lecture.html) : le document occupe
+   tout l'écran pour une lecture confortable. */
+function openViewer(docId) {
+  window.open("lecture.html?doc=" + encodeURIComponent(docId), "_blank", "noopener");
 }

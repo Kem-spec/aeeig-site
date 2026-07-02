@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lecture — AEEIG</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="assets/favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon-256.png" type="image/png">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Page de lecture : le document occupe tout l'écran */
+    html, body { height: 100%; }
+    body { display: flex; flex-direction: column; overflow: hidden; }
+    .reader-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--white);
+      flex-shrink: 0;
+    }
+    .reader-bar .r-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .reader-bar img { height: 34px; width: auto; flex-shrink: 0; }
+    .reader-bar h1 {
+      font-size: 1rem;
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .reader-main { flex: 1; min-height: 0; background: #3D4340; position: relative; }
+    .reader-main iframe { width: 100%; height: 100%; border: none; display: block; }
+    .reader-msg {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      color: #fff;
+      text-align: center;
+      padding: 24px;
+    }
+    .reader-msg p { color: rgba(255,255,255,.75); max-width: 40em; }
+    .reader-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 20px;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      font-size: .82rem;
+      color: var(--ink-soft);
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+    @media (max-width: 640px) {
+      .reader-bar h1 { font-size: .9rem; }
+      .reader-foot { font-size: .74rem; }
+    }
+  </style>
+</head>
+<body oncontextmenu="return false">
+
+<div class="reader-bar">
+  <div class="r-title">
+    <img src="assets/logo-mark.png" alt="AEEIG">
+    <h1 id="doc-title">Chargement…</h1>
+  </div>
+  <div style="display:flex; gap:10px; flex-shrink:0;">
+    <a class="btn btn-outline btn-sm" href="bibliotheque.html" id="back-btn">← Bibliothèque</a>
+    <button class="btn btn-green btn-sm" onclick="window.close()">✕ Fermer</button>
+  </div>
+</div>
+
+<div class="reader-main" id="reader-main">
+  <div class="reader-msg" id="reader-loading"><p>Chargement du document…</p></div>
+</div>
+
+<div class="reader-foot">
+  <span id="reader-meta">Consultation réservée aux membres et abonnés</span>
+  <span class="viewer-lock">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+    Lien sécurisé temporaire · Téléchargement désactivé
+  </span>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+(async () => {
+  const main = document.getElementById("reader-main");
+  const titleEl = document.getElementById("doc-title");
+  const metaEl = document.getElementById("reader-meta");
+
+  function showMsg(html) { main.innerHTML = `<div class="reader-msg">${html}</div>`; }
+
+  const docId = new URLSearchParams(location.search).get("doc");
+  if (!docId) { showMsg(`<h2 style="color:#fff;">Document introuvable</h2><a class="btn btn-primary" href="bibliotheque.html">Retour à la bibliothèque</a>`); return; }
+
+  const me = await Auth.me();
+  if (!me) {
+    window.location.href = "connexion.html";
+    return;
+  }
+
+  const { data: doc, error } = await SB.from("library_docs").select("*").eq("id", docId).maybeSingle();
+  if (error || !doc) {
+    titleEl.textContent = "Document introuvable";
+    showMsg(`<h2 style="color:#fff;">Ce document n'existe pas ou ne vous est pas accessible.</h2><a class="btn btn-primary" href="bibliotheque.html">Retour à la bibliothèque</a>`);
+    return;
+  }
+
+  titleEl.textContent = doc.titre;
+  document.title = doc.titre + " — AEEIG";
+  metaEl.textContent = `${doc.type || "Document"} · ${doc.auteur || "—"} · ${doc.filiere || ""} ${doc.annee || ""} — lecteur : ${me.full_name || me.email}`;
+
+  if (!doc.file_path) {
+    showMsg(`<h2 style="color:#fff;">Aucun fichier joint</h2><p>${escapeHtml(doc.resume || "Le fichier de ce document n'a pas encore été téléversé par l'administration.")}</p><a class="btn btn-primary" href="bibliotheque.html">Retour à la bibliothèque</a>`);
+    return;
+  }
+
+  try {
+    const url = await Storage.signedDocUrl(doc.file_path);
+    const isPdf = /\.pdf$/i.test(doc.file_name || doc.file_path);
+    if (isPdf) {
+      main.innerHTML = `<iframe src="${url}#toolbar=0&navpanes=0" title="${escapeHtml(doc.titre)}"></iframe>`;
+    } else {
+      showMsg(`<h2 style="color:#fff;">${escapeHtml(doc.file_name || "Document")}</h2>
+        <p>Ce format ne s'affiche pas directement dans le navigateur.</p>
+        <a class="btn btn-primary" href="${url}" target="_blank" rel="noopener">Ouvrir le document</a>`);
+    }
+  } catch (e) {
+    showMsg(`<h2 style="color:#fff;">Impossible d'ouvrir ce document</h2><p>${escapeHtml(e.message || "Vérifiez que votre compte est bien membre ou abonné.")}</p><a class="btn btn-primary" href="bibliotheque.html">Retour à la bibliothèque</a>`);
+  }
+})();
+</script>
+
+</body>
+</html>
