@@ -141,13 +141,35 @@ const News = {
 /* ---------- Bibliothèque ---------- */
 const Library = {
   _byId: {},
+  _cache(rows) { (rows || []).forEach(d => { this._byId[d.id] = d; }); return rows || []; },
+  // Catalogue public : documents validés uniquement
   async list() {
-    const { data } = await SB.from("library_docs").select("*").order("created_at", { ascending: false });
-    (data || []).forEach(d => { this._byId[d.id] = d; });
-    return data || [];
+    const { data } = await SB.from("library_docs").select("*").eq("status", "approved").order("created_at", { ascending: false });
+    return this._cache(data);
+  },
+  // Admin : tous les documents (y compris en attente / rejetés)
+  async listAll() {
+    const { data } = await SB.from("library_docs").select("*, profiles(full_name)").order("created_at", { ascending: false });
+    return this._cache(data);
+  },
+  // Mes propres dépôts (membre)
+  async listMine(userId) {
+    const { data } = await SB.from("library_docs").select("*").eq("submitted_by", userId).order("created_at", { ascending: false });
+    return this._cache(data);
   },
   create(obj) { return SB.from("library_docs").insert(obj).select().single(); },
+  setStatus(id, status) { return SB.from("library_docs").update({ status }).eq("id", id); },
   remove(id) { return SB.from("library_docs").delete().eq("id", id); },
+};
+
+/* ---------- Bulletins (privés) ---------- */
+const Bulletins = {
+  async listMine(userId) {
+    const { data } = await SB.from("bulletins").select("*").eq("user_id", userId).order("created_at", { ascending: false });
+    return data || [];
+  },
+  create(obj) { return SB.from("bulletins").insert(obj).select().single(); },
+  remove(id) { return SB.from("bulletins").delete().eq("id", id); },
 };
 
 /* ---------- Espace admin (données) ---------- */
@@ -227,6 +249,17 @@ const Storage = {
   },
   async signedDocUrl(path) {
     const { data, error } = await SB.storage.from("bibliotheque").createSignedUrl(path, 3600);
+    if (error) throw error;
+    return data.signedUrl;
+  },
+  async uploadBulletin(file, userId) {
+    const path = userId + "/" + Date.now() + "-" + safeFileName(file.name);
+    const { error } = await SB.storage.from("bulletins").upload(path, file, { upsert: false });
+    if (error) throw error;
+    return { path, name: file.name };
+  },
+  async signedBulletinUrl(path) {
+    const { data, error } = await SB.storage.from("bulletins").createSignedUrl(path, 3600);
     if (error) throw error;
     return data.signedUrl;
   },

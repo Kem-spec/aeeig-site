@@ -154,22 +154,35 @@
             <div class="table-wrap"><table class="data">
               <tr><th>Université</th><td>${escapeHtml(me.universite || "—")}</td></tr>
               <tr><th>Filière</th><td>${escapeHtml(me.faculte || "À renseigner dans « Mon profil »")}</td></tr>
+              <tr><th>Niveau</th><td>${escapeHtml(me.niveau || "À renseigner dans « Mon profil »")}</td></tr>
               <tr><th>Année académique</th><td>2026-2027</td></tr>
             </table></div>
           </div>
           <div class="panel-card">
-            <h3>Bulletins de notes</h3>
-            <p style="color:var(--ink-soft);">Aucun bulletin déposé pour le moment.</p>
-            <button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="toast('Le dépôt de bulletin PDF sera activé prochainement.')">+ Déposer un bulletin</button>
+            <div class="section-head" style="margin-bottom:12px;">
+              <h3 style="margin:0;">Bulletins de notes <span class="badge badge-gray">privé</span></h3>
+              <button class="btn btn-outline btn-sm" id="bull-add">+ Déposer un bulletin</button>
+            </div>
+            <p style="color:var(--ink-soft); font-size:.9rem;">Vos bulletins ne sont visibles que par vous et l'administration.</p>
+            <div id="bull-editor" style="display:none; margin:14px 0;"></div>
+            <div id="bull-list"></div>
           </div>
         </section>
 
         <section class="dash-panel" id="panel-depots">
-          <h2 style="margin-bottom:24px;">Mes dépôts (thèse / mémoire)</h2>
+          <h2 style="margin-bottom:24px;">Mes dépôts (thèse / mémoire / article)</h2>
           <div class="panel-card">
-            <p style="color:var(--ink-soft);">Déposez votre thèse ou mémoire : après validation par l'administration,
-            il sera publié dans la bibliothèque en ligne et consultable par la communauté.</p>
-            <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="toast('Le dépôt de document PDF sera activé prochainement.')">+ Déposer un document</button>
+            <div class="section-head" style="margin-bottom:12px;">
+              <h3 style="margin:0;">Soumettre un document</h3>
+              <button class="btn btn-primary btn-sm" id="depot-add">+ Déposer un document</button>
+            </div>
+            <p style="color:var(--ink-soft); font-size:.9rem;">Votre thèse, mémoire ou article est d'abord envoyé à l'administration.
+            Après <strong>validation</strong>, il apparaît dans la bibliothèque et devient consultable par la communauté.</p>
+            <div id="depot-editor" style="display:none; margin:14px 0;"></div>
+          </div>
+          <div class="panel-card">
+            <h3>Mes documents soumis</h3>
+            <div id="depot-list"></div>
           </div>
         </section>
 
@@ -202,6 +215,16 @@
               <div class="field" id="p-fac-other" ${facOther ? "" : "hidden"}>
                 <label for="p-fac-other-input">Précisez votre filière</label>
                 <input type="text" id="p-fac-other-input" value="${escapeHtml(facOther)}">
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                <div class="field">
+                  <label for="p-niveau">Niveau</label>
+                  <select id="p-niveau"><option value="">— Choisir —</option>${NIVEAUX.map(n => `<option ${n===me.niveau?"selected":""}>${n}</option>`).join("")}</select>
+                </div>
+                <div class="field">
+                  <label for="p-sexe">Sexe</label>
+                  <select id="p-sexe"><option value="">— Choisir —</option>${SEXES.map(s => `<option ${s===me.sexe?"selected":""}>${s}</option>`).join("")}</select>
+                </div>
               </div>
               ${me.adhesion_key ? `<div class="field">
                 <label>Clé d'adhésion utilisée</label><br>
@@ -242,12 +265,114 @@
       full_name: document.getElementById("p-nom").value.trim() || me.full_name,
       universite: selectFieldValue("p-univ"),
       faculte: selectFieldValue("p-fac"),
+      niveau: document.getElementById("p-niveau").value,
+      sexe: document.getElementById("p-sexe").value,
     });
     const box = document.getElementById("profile-alert");
     box.innerHTML = res.ok
       ? `<div class="alert alert-success" role="alert"><span>Profil mis à jour.</span></div>`
       : `<div class="alert alert-error" role="alert"><span>La mise à jour a échoué. Réessayez.</span></div>`;
   });
+
+  /* ============ Bulletins (privés) ============ */
+  const bullList = document.getElementById("bull-list");
+  const bullEditor = document.getElementById("bull-editor");
+  async function loadBulletins() {
+    const items = await Bulletins.listMine(me.id);
+    bullList.innerHTML = items.length ? `<div class="table-wrap"><table class="data">
+      <thead><tr><th>Période</th><th>Fichier</th><th>Déposé le</th><th></th></tr></thead>
+      <tbody>${items.map(b => `<tr>
+        <td>${escapeHtml(b.periode || "—")}</td>
+        <td>${escapeHtml(b.file_name || "—")}</td>
+        <td>${formatDate(b.created_at)}</td>
+        <td style="text-align:right; white-space:nowrap;">
+          <button class="btn btn-outline btn-sm" data-open-bull="${b.file_path}">Ouvrir</button>
+          <button class="btn btn-danger btn-sm" data-del-bull="${b.id}" data-path="${b.file_path}">Suppr.</button>
+        </td></tr>`).join("")}</tbody></table></div>`
+      : `<p style="color:var(--ink-soft);">Aucun bulletin déposé.</p>`;
+  }
+  document.getElementById("bull-add").addEventListener("click", () => {
+    bullEditor.style.display = "block";
+    bullEditor.innerHTML = `<form id="bull-form" style="border:1px solid var(--border); border-radius:var(--radius); padding:16px; background:var(--surface);">
+      <div class="field"><label for="bf-periode">Période</label><input type="text" id="bf-periode" placeholder="Ex. Semestre 1 — 2025-2026"></div>
+      <div class="field"><label for="bf-file">Fichier (PDF ou image) <span class="req">*</span></label><input type="file" id="bf-file" accept=".pdf,.jpg,.jpeg,.png" required></div>
+      <div style="display:flex; gap:10px;"><button type="submit" class="btn btn-green">Téléverser</button><button type="button" class="btn btn-outline" id="bf-cancel">Annuler</button></div>
+    </form>`;
+    document.getElementById("bf-cancel").addEventListener("click", () => { bullEditor.style.display = "none"; });
+    document.getElementById("bull-form").addEventListener("submit", async ev => {
+      ev.preventDefault();
+      const f = document.getElementById("bf-file").files[0]; if (!f) return;
+      const btn = ev.target.querySelector("button[type=submit]"); btn.disabled = true; btn.textContent = "Téléversement…";
+      try {
+        const up = await Storage.uploadBulletin(f, me.id);
+        const res = await Bulletins.create({ user_id: me.id, periode: document.getElementById("bf-periode").value.trim(), file_path: up.path, file_name: up.name });
+        if (res.error) throw res.error;
+        bullEditor.style.display = "none"; toast("Bulletin déposé."); loadBulletins();
+      } catch (err) { toast("Erreur : " + (err.message || "")); btn.disabled = false; btn.textContent = "Téléverser"; }
+    });
+  });
+  bullList.addEventListener("click", async e => {
+    const open = e.target.closest("[data-open-bull]");
+    const del = e.target.closest("[data-del-bull]");
+    if (open) { try { const url = await Storage.signedBulletinUrl(open.dataset.openBull); window.open(url, "_blank", "noopener"); } catch (err) { toast("Erreur d'ouverture."); } }
+    if (del) { if (!confirm("Supprimer ce bulletin ?")) return; await SB.storage.from("bulletins").remove([del.dataset.path]); await Bulletins.remove(del.dataset.delBull); loadBulletins(); toast("Bulletin supprimé."); }
+  });
+  loadBulletins();
+
+  /* ============ Dépôts (thèse / mémoire / article) ============ */
+  const DEP_BADGE = { pending: "badge-orange", approved: "badge-green", rejected: "badge-red" };
+  const DEP_LABEL = { pending: "En attente", approved: "Validé", rejected: "Rejeté" };
+  const depotList = document.getElementById("depot-list");
+  const depotEditor = document.getElementById("depot-editor");
+  async function loadDepots() {
+    const items = await Library.listMine(me.id);
+    depotList.innerHTML = items.length ? `<div class="table-wrap"><table class="data">
+      <thead><tr><th>Titre</th><th>Type</th><th>Statut</th><th></th></tr></thead>
+      <tbody>${items.map(d => `<tr>
+        <td><strong>${escapeHtml(d.titre)}</strong><br><span class="news-date">${escapeHtml(d.filiere || "")} · ${d.annee || ""}</span></td>
+        <td>${escapeHtml(d.type || "")}</td>
+        <td><span class="badge ${DEP_BADGE[d.status] || "badge-gray"}">${DEP_LABEL[d.status] || d.status}</span></td>
+        <td style="text-align:right;">${d.file_path ? `<button class="btn btn-outline btn-sm" onclick="openViewer('${d.id}')">Consulter</button>` : ""}</td>
+      </tr>`).join("")}</tbody></table></div>`
+      : `<p style="color:var(--ink-soft);">Aucun document soumis.</p>`;
+  }
+  document.getElementById("depot-add").addEventListener("click", () => {
+    depotEditor.style.display = "block";
+    depotEditor.innerHTML = `<form id="depot-form" style="border:1px solid var(--border); border-radius:var(--radius); padding:16px; background:var(--surface);">
+      <div class="field"><label for="df-titre">Titre <span class="req">*</span></label><input type="text" id="df-titre" required></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+        <div class="field"><label for="df-type">Type</label><select id="df-type">${DEPOT_TYPES.map(t => `<option>${t}</option>`).join("")}</select></div>
+        <div class="field"><label for="df-annee">Année</label><input type="number" id="df-annee" value="2026"></div>
+      </div>
+      <div class="field"><label for="df-filiere">Filière</label><select id="df-filiere" data-other="df-filiere-other">${optionList(FILIERES, me.faculte || "")}</select></div>
+      <div class="field" id="df-filiere-other" hidden><label for="df-filiere-other-input">Précisez la filière</label><input type="text" id="df-filiere-other-input"></div>
+      <div class="field"><label for="df-resume">Résumé</label><textarea id="df-resume" rows="3"></textarea></div>
+      <div class="field"><label for="df-file">Fichier (PDF, Word, PowerPoint) <span class="req">*</span></label><input type="file" id="df-file" accept=".pdf,.doc,.docx,.ppt,.pptx" required></div>
+      <div style="display:flex; gap:10px;"><button type="submit" class="btn btn-primary">Soumettre</button><button type="button" class="btn btn-outline" id="df-cancel">Annuler</button></div>
+    </form>`;
+    wireOtherSelects(depotEditor);
+    document.getElementById("df-cancel").addEventListener("click", () => { depotEditor.style.display = "none"; });
+    document.getElementById("depot-form").addEventListener("submit", async ev => {
+      ev.preventDefault();
+      const titre = document.getElementById("df-titre").value.trim();
+      const f = document.getElementById("df-file").files[0];
+      if (!titre || !f) return;
+      const btn = ev.target.querySelector("button[type=submit]"); btn.disabled = true; btn.textContent = "Téléversement…";
+      try {
+        const up = await Storage.uploadDoc(f);
+        const res = await Library.create({
+          titre, type: document.getElementById("df-type").value,
+          filiere: selectFieldValue("df-filiere"),
+          annee: parseInt(document.getElementById("df-annee").value, 10) || null,
+          resume: document.getElementById("df-resume").value.trim(),
+          file_path: up.path, file_name: up.name, status: "pending", submitted_by: me.id,
+        });
+        if (res.error) throw res.error;
+        depotEditor.style.display = "none"; toast("Document soumis. En attente de validation."); loadDepots();
+      } catch (err) { toast("Erreur : " + (err.message || "")); btn.disabled = false; btn.textContent = "Soumettre"; }
+    });
+  });
+  loadDepots();
 })();
 </script>
 

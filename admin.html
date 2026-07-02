@@ -62,6 +62,7 @@
         </div>
         <nav class="dash-nav" aria-label="Navigation administrateur">
           <button class="active" data-panel="dash">Tableau de bord</button>
+          <button data-panel="stats">Statistiques</button>
           <button data-panel="keys">Clés d'adhésion</button>
           <button data-panel="students">Membres</button>
           <button data-panel="subs">Abonnements</button>
@@ -76,6 +77,18 @@
         <section class="dash-panel active" id="panel-dash">
           <h2 style="margin-bottom:24px;">Tableau de bord</h2>
           <div class="stat-grid" id="stat-grid"></div>
+        </section>
+
+        <!-- Statistiques -->
+        <section class="dash-panel" id="panel-stats">
+          <h2 style="margin-bottom:24px;">Statistiques des membres</h2>
+          <div class="stat-grid" id="stats-summary" style="margin-bottom:28px;"></div>
+          <div class="panel-card">
+            <h3>Tableau croisé</h3>
+            <p style="color:var(--ink-soft); font-size:.9rem;">Croisez deux critères (ex. Université × Sexe) et affinez avec les filtres.</p>
+            <div id="stats-controls" style="display:flex; flex-wrap:wrap; gap:14px; margin:16px 0;"></div>
+            <div id="stats-table" class="table-wrap"></div>
+          </div>
         </section>
 
         <!-- Clés -->
@@ -142,7 +155,7 @@
             </div>
             <div id="doc-editor" style="display:none; margin-bottom:20px;"></div>
             <div class="table-wrap"><table class="data">
-              <thead><tr><th>Titre</th><th>Type</th><th>Filière</th><th>Année</th><th></th></tr></thead>
+              <thead><tr><th>Titre</th><th>Type</th><th>Filière</th><th>Statut</th><th></th></tr></thead>
               <tbody id="docs-tbody"></tbody>
             </table></div>
           </div>
@@ -186,7 +199,7 @@
 
   async function loadAll() {
     [keys, members, subscribers, newsList, docs] = await Promise.all([
-      Admin.keys(), Admin.members(), Admin.subscribers(), News.all(), Library.list(),
+      Admin.keys(), Admin.members(), Admin.subscribers(), News.all(), Library.listAll(),
     ]);
   }
 
@@ -194,11 +207,14 @@
   function renderStats() {
     const pendingKeys = keys.filter(k => k.statut === "générée" || k.statut === "remise").length;
     const activeSubs = subscribers.filter(s => s.statut === "actif").length;
+    const approvedDocs = docs.filter(d => d.status === "approved").length;
+    const pendingDocs = docs.filter(d => d.status === "pending").length;
     document.getElementById("stat-grid").innerHTML = `
       <div class="stat-card stat-orange"><div class="stat-num">${members.length}</div><div class="stat-label">Membres inscrits</div></div>
       <div class="stat-card stat-green"><div class="stat-num">${activeSubs}</div><div class="stat-label">Abonnés actifs</div></div>
       <div class="stat-card stat-orange"><div class="stat-num">${pendingKeys}</div><div class="stat-label">Clés en attente</div></div>
-      <div class="stat-card stat-green"><div class="stat-num">${docs.length}</div><div class="stat-label">Documents en ligne</div></div>`;
+      <div class="stat-card stat-green"><div class="stat-num">${approvedDocs}</div><div class="stat-label">Documents en ligne</div></div>
+      <div class="stat-card stat-orange"><div class="stat-num">${pendingDocs}</div><div class="stat-label">Dépôts à valider</div></div>`;
   }
 
   const KEY_BADGE = { "générée": "badge-gray", "remise": "badge-orange", "utilisée": "badge-green", "annulée": "badge-red" };
@@ -251,13 +267,24 @@
       </tr>`).join("") : `<tr><td style="text-align:center; color:var(--ink-soft); padding:24px;">Aucune actualité.</td></tr>`;
   }
 
+  const DOC_STATUS = { pending: "badge-orange", approved: "badge-green", rejected: "badge-red" };
+  const DOC_STATUS_L = { pending: "En attente", approved: "Validé", rejected: "Rejeté" };
   function renderDocs() {
-    document.getElementById("docs-tbody").innerHTML = docs.length ? docs.map(d => `
-      <tr>
-        <td><strong>${escapeHtml(d.titre)}</strong><br><span class="news-date">${escapeHtml(d.auteur || "")}</span></td>
-        <td>${escapeHtml(d.type || "")}</td><td>${escapeHtml(d.filiere || "")}</td><td>${d.annee || ""}</td>
-        <td style="text-align:right;"><button class="btn btn-danger btn-sm" data-del-doc="${d.id}">Supprimer</button></td>
-      </tr>`).join("") : `<tr><td colspan="5" style="text-align:center; color:var(--ink-soft); padding:24px;">Aucun document.</td></tr>`;
+    // dépôts en attente d'abord
+    const ordered = [...docs].sort((a, b) => (a.status === "pending" ? -1 : 0) - (b.status === "pending" ? -1 : 0));
+    document.getElementById("docs-tbody").innerHTML = ordered.length ? ordered.map(d => {
+      const who = d.submitted_by && d.profiles ? ` · soumis par ${escapeHtml(d.profiles.full_name || "membre")}` : "";
+      const consult = d.file_path ? `<button class="btn btn-outline btn-sm" onclick="openViewer('${d.id}')">Consulter</button>` : "";
+      const validate = d.status !== "approved" ? `<button class="btn btn-green btn-sm" data-approve="${d.id}">Valider</button>` : "";
+      const reject = d.status === "pending" ? `<button class="btn btn-outline btn-sm" data-reject="${d.id}">Rejeter</button>` : "";
+      return `<tr>
+        <td><strong>${escapeHtml(d.titre)}</strong><br><span class="news-date">${escapeHtml(d.auteur || d.filiere || "")}${who}</span></td>
+        <td>${escapeHtml(d.type || "")}</td><td>${escapeHtml(d.filiere || "")}</td>
+        <td><span class="badge ${DOC_STATUS[d.status] || "badge-gray"}">${DOC_STATUS_L[d.status] || d.status}</span></td>
+        <td style="text-align:right; white-space:nowrap;">${consult} ${validate} ${reject}
+          <button class="btn btn-danger btn-sm" data-del-doc="${d.id}">Suppr.</button></td>
+      </tr>`;
+    }).join("") : `<tr><td colspan="5" style="text-align:center; color:var(--ink-soft); padding:24px;">Aucun document.</td></tr>`;
   }
 
   function fillSettings() {
@@ -455,12 +482,28 @@
     });
   });
   document.getElementById("docs-tbody").addEventListener("click", async e => {
-    const del = e.target.closest("[data-del-doc]"); if (!del) return;
-    if (!confirm("Supprimer ce document ?")) return;
-    const { error } = await Library.remove(del.dataset.delDoc);
-    if (error) { toast("Erreur : " + error.message); return; }
-    docs = docs.filter(d => d.id !== del.dataset.delDoc);
-    renderDocs(); renderStats(); toast("Document supprimé.");
+    const del = e.target.closest("[data-del-doc]");
+    const approve = e.target.closest("[data-approve]");
+    const reject = e.target.closest("[data-reject]");
+    if (approve) {
+      const { error } = await Library.setStatus(approve.dataset.approve, "approved");
+      if (error) { toast("Erreur : " + error.message); return; }
+      const d = docs.find(x => x.id === approve.dataset.approve); if (d) d.status = "approved";
+      renderDocs(); renderStats(); toast("Document validé et publié dans la bibliothèque.");
+    }
+    if (reject) {
+      const { error } = await Library.setStatus(reject.dataset.reject, "rejected");
+      if (error) { toast("Erreur : " + error.message); return; }
+      const d = docs.find(x => x.id === reject.dataset.reject); if (d) d.status = "rejected";
+      renderDocs(); toast("Document rejeté.");
+    }
+    if (del) {
+      if (!confirm("Supprimer ce document ?")) return;
+      const { error } = await Library.remove(del.dataset.delDoc);
+      if (error) { toast("Erreur : " + error.message); return; }
+      docs = docs.filter(d => d.id !== del.dataset.delDoc);
+      renderDocs(); renderStats(); toast("Document supprimé.");
+    }
   });
 
   /* ----- Paramètres ----- */
@@ -474,9 +517,60 @@
       : `<div class="alert alert-success" role="alert"><span>Paramètres enregistrés.</span></div>`;
   });
 
+  /* ---------- Statistiques (tableau croisé) ---------- */
+  function renderStatsPanel() {
+    const DIMS = {
+      universite: { label: "Université", get: p => p.universite || "—" },
+      filiere:    { label: "Filière",    get: p => p.faculte || "—" },
+      niveau:     { label: "Niveau",     get: p => p.niveau || "—" },
+      sexe:       { label: "Sexe",       get: p => p.sexe || "—" },
+      annee:      { label: "Année d'inscription", get: p => (p.created_at || "").slice(0, 4) || "—" },
+    };
+    const rows = members;
+    const ctrl = document.getElementById("stats-controls");
+    const distinct = dim => [...new Set(rows.map(DIMS[dim].get))].sort();
+    const dimSelect = (id, lbl, def) => `<label style="font-size:.78rem; font-weight:700; display:flex; flex-direction:column; gap:4px;">${lbl}
+      <select id="stat-${id}" style="min-width:160px;">${Object.entries(DIMS).map(([k, v]) => `<option value="${k}" ${k === def ? "selected" : ""}>${v.label}</option>`).join("")}</select></label>`;
+    const filterSelect = dim => `<label style="font-size:.78rem; font-weight:700; display:flex; flex-direction:column; gap:4px;">Filtre : ${DIMS[dim].label}
+      <select data-filter="${dim}" style="min-width:150px;"><option value="">Tous</option>${distinct(dim).map(v => `<option>${escapeHtml(v)}</option>`).join("")}</select></label>`;
+    ctrl.innerHTML = dimSelect("row", "Lignes", "universite") + dimSelect("col", "Colonnes", "sexe") + Object.keys(DIMS).map(filterSelect).join("");
+
+    function render() {
+      const rowDim = document.getElementById("stat-row").value;
+      const colDim = document.getElementById("stat-col").value;
+      const filters = {};
+      ctrl.querySelectorAll("[data-filter]").forEach(s => { filters[s.dataset.filter] = s.value; });
+      const filtered = rows.filter(p => Object.entries(filters).every(([d, val]) => !val || DIMS[d].get(p) === val));
+
+      const total = filtered.length;
+      const fem = filtered.filter(p => (p.sexe || "") === "Féminin").length;
+      const mas = filtered.filter(p => (p.sexe || "") === "Masculin").length;
+      document.getElementById("stats-summary").innerHTML = `
+        <div class="stat-card stat-green"><div class="stat-num">${total}</div><div class="stat-label">Membres (filtrés)</div></div>
+        <div class="stat-card stat-orange"><div class="stat-num">${fem}</div><div class="stat-label">Féminin</div></div>
+        <div class="stat-card stat-green"><div class="stat-num">${mas}</div><div class="stat-label">Masculin</div></div>
+        <div class="stat-card stat-orange"><div class="stat-num">${total ? Math.round(fem / total * 100) : 0}%</div><div class="stat-label">Part féminine</div></div>`;
+
+      const rowVals = [...new Set(filtered.map(DIMS[rowDim].get))].sort();
+      const colVals = [...new Set(filtered.map(DIMS[colDim].get))].sort();
+      const cell = {}, colTot = {}; let grand = 0;
+      filtered.forEach(p => { const k = DIMS[rowDim].get(p) + "||" + DIMS[colDim].get(p); cell[k] = (cell[k] || 0) + 1; });
+      let html = `<table class="data"><thead><tr><th>${DIMS[rowDim].label} × ${DIMS[colDim].label}</th>${colVals.map(c => `<th>${escapeHtml(c)}</th>`).join("")}<th>Total</th></tr></thead><tbody>`;
+      rowVals.forEach(r => {
+        let rowTot = 0;
+        html += `<tr><td><strong>${escapeHtml(r)}</strong></td>` + colVals.map(c => { const v = cell[r + "||" + c] || 0; rowTot += v; colTot[c] = (colTot[c] || 0) + v; return `<td>${v || ""}</td>`; }).join("") + `<td><strong>${rowTot}</strong></td></tr>`;
+        grand += rowTot;
+      });
+      html += `<tr style="background:var(--surface);"><td><strong>Total</strong></td>${colVals.map(c => `<td><strong>${colTot[c] || 0}</strong></td>`).join("")}<td><strong>${grand}</strong></td></tr></tbody></table>`;
+      document.getElementById("stats-table").innerHTML = filtered.length ? html : `<p style="color:var(--ink-soft);">Aucune donnée pour ces filtres.</p>`;
+    }
+    ctrl.addEventListener("change", render);
+    render();
+  }
+
   /* ---------- Initialisation ---------- */
   await loadAll();
-  renderStats(); renderKeys(); renderMembers(); renderSubs(); renderNews(); renderDocs(); fillSettings();
+  renderStats(); renderKeys(); renderMembers(); renderSubs(); renderNews(); renderDocs(); fillSettings(); renderStatsPanel();
 })();
 </script>
 

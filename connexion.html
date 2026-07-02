@@ -138,6 +138,18 @@
               <input type="text" id="m-fac-other-input" autocomplete="off">
               <span class="error-msg">Indiquez le nom de votre filière.</span>
             </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+              <div class="field">
+                <label for="m-niveau">Niveau <span class="req">*</span></label>
+                <select id="m-niveau" required><option value="">— Choisir —</option></select>
+                <span class="error-msg">Sélectionnez votre niveau.</span>
+              </div>
+              <div class="field">
+                <label for="m-sexe">Sexe <span class="req">*</span></label>
+                <select id="m-sexe" required><option value="">— Choisir —</option></select>
+                <span class="error-msg">Sélectionnez votre sexe.</span>
+              </div>
+            </div>
             <div class="field">
               <label for="m-pass">Mot de passe <span class="req">*</span></label>
               <input type="password" id="m-pass" autocomplete="new-password" minlength="8" required>
@@ -276,8 +288,10 @@
   else if (location.hash === "#abonnement") { showView("create"); showAcct("sub"); }
   else showView("login");
 
-  // Remplir la liste des filières (source unique : data.js)
+  // Remplir les listes (source unique : data.js)
   document.getElementById("m-fac").innerHTML = optionList(FILIERES, "");
+  document.getElementById("m-niveau").innerHTML = `<option value="">— Choisir —</option>` + NIVEAUX.map(n => `<option>${n}</option>`).join("");
+  document.getElementById("m-sexe").innerHTML = `<option value="">— Choisir —</option>` + SEXES.map(s => `<option>${s}</option>`).join("");
 
   /* ---- Champs « Autre » : révèlent une saisie libre ---- */
   document.querySelectorAll("select[data-other]").forEach(sel => {
@@ -371,6 +385,10 @@
     // 3) Consommer la clé + compléter le profil
     const red = await Auth.redeemKey(code, selectValue("m-univ"), selectValue("m-fac"));
     if (!red.ok) { showAlert("error", red.reason || "La clé n'a pas pu être validée."); }
+    await Auth.updateProfile({
+      niveau: document.getElementById("m-niveau").value,
+      sexe: document.getElementById("m-sexe").value,
+    });
     window.location.href = "espace-membre.html";
   });
 

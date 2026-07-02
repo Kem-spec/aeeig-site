@@ -40,3 +40,7 @@ const FILIERES = [
   "Sciences de l'Éducation",
   "Agronomie",
 ];
+
+const NIVEAUX = ["Licence 1", "Licence 2", "Licence 3", "Master 1", "Master 2", "Doctorat"];
+const SEXES = ["Féminin", "Masculin"];
+const DEPOT_TYPES = ["Mémoire", "Thèse", "Article"];
