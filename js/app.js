@@ -207,6 +207,39 @@ const Payment = {
   // }
 };
 
+/* ---------- Menus déroulants avec option « Autre » ---------- */
+// Génère les <option> d'un select ; sélectionne « Autre » si la valeur
+// courante n'est pas dans la liste (valeur personnalisée).
+function optionList(list, selected) {
+  const inList = list.includes(selected);
+  return `<option value="">— Choisir —</option>` +
+    list.map(o => `<option ${o === selected ? "selected" : ""}>${escapeHtml(o)}</option>`).join("") +
+    `<option ${(!inList && selected) ? "selected" : ""}>Autre</option>`;
+}
+
+// Révèle le champ de saisie libre quand « Autre » est choisi
+function wireOtherSelects(root = document) {
+  root.querySelectorAll("select[data-other]").forEach(sel => {
+    const extra = document.getElementById(sel.dataset.other);
+    if (!extra) return;
+    const input = extra.querySelector("input");
+    sel.addEventListener("change", () => {
+      const other = sel.value === "Autre";
+      extra.hidden = !other;
+      if (input) { input.required = other; if (!other) { input.value = ""; extra.classList.remove("has-error"); } }
+    });
+  });
+}
+
+// Valeur d'un select, ou la saisie libre quand « Autre » est choisi
+function selectFieldValue(selId) {
+  const sel = document.getElementById(selId);
+  if (sel.value === "Autre" && sel.dataset.other) {
+    return document.getElementById(sel.dataset.other).querySelector("input").value.trim();
+  }
+  return sel.value;
+}
+
 /* ---------- Slug (pour les URL d'actualités) ---------- */
 function slugify(str) {
   return (str || "").toString().normalize("NFD").replace(/[̀-ͯ]/g, "")

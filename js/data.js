@@ -18,3 +18,23 @@ const NEWS_CATEGORIES = [
   "Vie associative", "Adhésions", "Sport & culture",
   "Académique", "Entraide", "Bibliothèque",
 ];
+
+// Listes partagées inscription ↔ profil (une seule source de vérité)
+const UNIVERSITES = [
+  "Université Gamal Abdel Nasser de Conakry",
+  "Université Général Lansana Conté de Sonfonia",
+  "Université Kofi Annan de Guinée",
+  "Université la Source",
+  "Institut Supérieur de Technologie de Mamou",
+];
+const FACULTES = [
+  "Faculté de Médecine",
+  "Faculté de Pharmacie",
+  "Faculté d'Odonto-Stomatologie",
+  "Faculté des Sciences et Techniques",
+  "Faculté de Droit et Sciences Politiques",
+  "Faculté des Sciences Économiques et de Gestion",
+  "Faculté des Lettres et Sciences Humaines",
+  "Faculté des Sciences Sociales",
+  "Institut Polytechnique (Génie)",
+];

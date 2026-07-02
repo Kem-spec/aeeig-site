@@ -107,6 +107,11 @@
   }
 
   /* ============ Vue MEMBRE (étudiant) ============ */
+  const univSel = me.universite || "";
+  const facSel = me.faculte || "";
+  const univOther = (univSel && !UNIVERSITES.includes(univSel)) ? univSel : "";
+  const facOther = (facSel && !FACULTES.includes(facSel)) ? facSel : "";
+
   root.innerHTML = `
     <div class="dash-layout">
       <aside class="dash-side">
@@ -184,11 +189,19 @@
               </div>
               <div class="field">
                 <label for="p-univ">Université</label>
-                <input type="text" id="p-univ" value="${escapeHtml(me.universite || "")}">
+                <select id="p-univ" data-other="p-univ-other">${optionList(UNIVERSITES, univSel)}</select>
+              </div>
+              <div class="field" id="p-univ-other" ${univOther ? "" : "hidden"}>
+                <label for="p-univ-other-input">Précisez votre université</label>
+                <input type="text" id="p-univ-other-input" value="${escapeHtml(univOther)}">
               </div>
               <div class="field">
                 <label for="p-fac">Faculté</label>
-                <input type="text" id="p-fac" value="${escapeHtml(me.faculte || "")}">
+                <select id="p-fac" data-other="p-fac-other">${optionList(FACULTES, facSel)}</select>
+              </div>
+              <div class="field" id="p-fac-other" ${facOther ? "" : "hidden"}>
+                <label for="p-fac-other-input">Précisez votre faculté</label>
+                <input type="text" id="p-fac-other-input" value="${escapeHtml(facOther)}">
               </div>
               ${me.adhesion_key ? `<div class="field">
                 <label>Clé d'adhésion utilisée</label><br>
@@ -200,6 +213,9 @@
         </section>
       </div>
     </div>`;
+
+  // Menus déroulants « Autre » (université / faculté)
+  wireOtherSelects();
 
   // Navigation interne (onglets)
   document.querySelectorAll(".dash-nav button").forEach(btn => {
@@ -224,8 +240,8 @@
     e.preventDefault();
     const res = await Auth.updateProfile({
       full_name: document.getElementById("p-nom").value.trim() || me.full_name,
-      universite: document.getElementById("p-univ").value.trim(),
-      faculte: document.getElementById("p-fac").value.trim(),
+      universite: selectFieldValue("p-univ"),
+      faculte: selectFieldValue("p-fac"),
     });
     const box = document.getElementById("profile-alert");
     box.innerHTML = res.ok
