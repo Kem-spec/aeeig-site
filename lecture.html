@@ -133,13 +133,23 @@
 
   try {
     const url = await Storage.signedDocUrl(doc.file_path);
-    const isPdf = /\.pdf$/i.test(doc.file_name || doc.file_path);
-    if (isPdf) {
+    const name = (doc.file_name || doc.file_path).toLowerCase();
+
+    if (/\.pdf$/.test(name)) {
+      // PDF : affiché nativement par le navigateur
       main.innerHTML = `<iframe src="${url}#toolbar=0&navpanes=0" title="${escapeHtml(doc.titre)}"></iframe>`;
+    } else if (/\.(doc|docx|ppt|pptx|xls|xlsx)$/.test(name)) {
+      // Word / PowerPoint / Excel : rendus dans la visionneuse Office embarquée
+      const office = "https://view.officeapps.live.com/op/embed.aspx?src=" + encodeURIComponent(url);
+      main.innerHTML = `<iframe src="${office}" title="${escapeHtml(doc.titre)}"></iframe>`;
+    } else if (/\.(jpg|jpeg|png|gif|webp)$/.test(name)) {
+      // Image : affichée directement, centrée
+      main.innerHTML = `<div style="height:100%; overflow:auto; display:flex; align-items:flex-start; justify-content:center; padding:20px;">
+        <img src="${url}" alt="${escapeHtml(doc.titre)}" style="max-width:100%; height:auto; border-radius:8px;" oncontextmenu="return false" draggable="false"></div>`;
     } else {
-      showMsg(`<h2 style="color:#fff;">${escapeHtml(doc.file_name || "Document")}</h2>
-        <p>Ce format ne s'affiche pas directement dans le navigateur.</p>
-        <a class="btn btn-primary" href="${url}" target="_blank" rel="noopener">Ouvrir le document</a>`);
+      // Format inconnu : tentative via la visionneuse Google Docs
+      const gview = "https://docs.google.com/gview?embedded=true&url=" + encodeURIComponent(url);
+      main.innerHTML = `<iframe src="${gview}" title="${escapeHtml(doc.titre)}"></iframe>`;
     }
   } catch (e) {
     showMsg(`<h2 style="color:#fff;">Impossible d'ouvrir ce document</h2><p>${escapeHtml(e.message || "Vérifiez que votre compte est bien membre ou abonné.")}</p><a class="btn btn-primary" href="bibliotheque.html">Retour à la bibliothèque</a>`);
