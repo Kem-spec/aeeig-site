@@ -27,14 +27,16 @@ const UNIVERSITES = [
   "Université la Source",
   "Institut Supérieur de Technologie de Mamou",
 ];
-const FACULTES = [
-  "Faculté de Médecine",
-  "Faculté de Pharmacie",
-  "Faculté d'Odonto-Stomatologie",
-  "Faculté des Sciences et Techniques",
-  "Faculté de Droit et Sciences Politiques",
-  "Faculté des Sciences Économiques et de Gestion",
-  "Faculté des Lettres et Sciences Humaines",
-  "Faculté des Sciences Sociales",
-  "Institut Polytechnique (Génie)",
+const FILIERES = [
+  "Médecine",
+  "Pharmacie",
+  "Odonto-Stomatologie",
+  "Sciences et Techniques",
+  "Droit et Sciences Politiques",
+  "Sciences Économiques et de Gestion",
+  "Lettres et Sciences Humaines",
+  "Sciences Sociales",
+  "Génie (Institut Polytechnique)",
+  "Sciences de l'Éducation",
+  "Agronomie",
 ];

@@ -110,7 +110,7 @@
   const univSel = me.universite || "";
   const facSel = me.faculte || "";
   const univOther = (univSel && !UNIVERSITES.includes(univSel)) ? univSel : "";
-  const facOther = (facSel && !FACULTES.includes(facSel)) ? facSel : "";
+  const facOther = (facSel && !FILIERES.includes(facSel)) ? facSel : "";
 
   root.innerHTML = `
     <div class="dash-layout">
@@ -153,7 +153,7 @@
             <h3>Informations en cours</h3>
             <div class="table-wrap"><table class="data">
               <tr><th>Université</th><td>${escapeHtml(me.universite || "—")}</td></tr>
-              <tr><th>Faculté</th><td>${escapeHtml(me.faculte || "À renseigner dans « Mon profil »")}</td></tr>
+              <tr><th>Filière</th><td>${escapeHtml(me.faculte || "À renseigner dans « Mon profil »")}</td></tr>
               <tr><th>Année académique</th><td>2026-2027</td></tr>
             </table></div>
           </div>
@@ -196,11 +196,11 @@
                 <input type="text" id="p-univ-other-input" value="${escapeHtml(univOther)}">
               </div>
               <div class="field">
-                <label for="p-fac">Faculté</label>
-                <select id="p-fac" data-other="p-fac-other">${optionList(FACULTES, facSel)}</select>
+                <label for="p-fac">Filière</label>
+                <select id="p-fac" data-other="p-fac-other">${optionList(FILIERES, facSel)}</select>
               </div>
               <div class="field" id="p-fac-other" ${facOther ? "" : "hidden"}>
-                <label for="p-fac-other-input">Précisez votre faculté</label>
+                <label for="p-fac-other-input">Précisez votre filière</label>
                 <input type="text" id="p-fac-other-input" value="${escapeHtml(facOther)}">
               </div>
               ${me.adhesion_key ? `<div class="field">
@@ -214,7 +214,7 @@
       </div>
     </div>`;
 
-  // Menus déroulants « Autre » (université / faculté)
+  // Menus déroulants « Autre » (université / filière)
   wireOtherSelects();
 
   // Navigation interne (onglets)

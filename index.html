@@ -52,7 +52,7 @@
         suivi académique, bibliothèque numérique, entraide et vie associative — réunis sur un seul portail.
       </p>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="connexion.html#inscription">Créer mon compte</a>
+        <a class="btn btn-primary" id="hero-primary" href="connexion.html#inscription">Créer mon compte</a>
         <a class="btn btn-glass" href="bibliotheque.html">Découvrir la bibliothèque</a>
       </div>
       <div class="hero-stats">
@@ -65,7 +65,7 @@
   </section>
 
   <!-- ===== Bloc d'orientation deux profils ===== -->
-  <section class="section" style="padding-top: 0;">
+  <section class="section" style="padding-top: 0;" id="join-block">
     <div class="container">
       <div class="profiles">
 
@@ -251,6 +251,14 @@
     const isLogged = !!me;
     document.getElementById("home-docs").innerHTML =
       docs.slice(0, 4).map(d => docCardHTML(d, { locked: !isLogged })).join("");
+
+    // Connecté : masquer le bloc « rejoindre / s'abonner » et adapter le hero
+    if (isLogged) {
+      const join = document.getElementById("join-block");
+      if (join) join.style.display = "none";
+      const cta = document.getElementById("hero-primary");
+      if (cta) { cta.textContent = "Accéder à mon espace"; cta.href = "espace-membre.html"; }
+    }
   })();
 </script>
 

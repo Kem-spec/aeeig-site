@@ -105,7 +105,7 @@
           </div>
           <div class="panel-card">
             <div class="table-wrap"><table class="data">
-              <thead><tr><th>Nom</th><th>E-mail</th><th>Université</th><th>Faculté</th><th>Statut</th></tr></thead>
+              <thead><tr><th>Nom</th><th>E-mail</th><th>Université</th><th>Filière</th><th>Statut</th></tr></thead>
               <tbody id="students-tbody"></tbody>
             </table></div>
           </div>
@@ -402,9 +402,10 @@
           <div class="field"><label for="d-type">Type</label><select id="d-type">${Object.keys(DOC_TYPE_CLASS).map(t => `<option>${t}</option>`).join("")}</select></div>
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
-          <div class="field"><label for="d-filiere">Filière</label><input type="text" id="d-filiere"></div>
+          <div class="field"><label for="d-filiere">Filière</label><select id="d-filiere" data-other="d-filiere-other">${optionList(FILIERES, "")}</select></div>
           <div class="field"><label for="d-annee">Année</label><input type="number" id="d-annee" value="2026"></div>
         </div>
+        <div class="field" id="d-filiere-other" hidden><label for="d-filiere-other-input">Précisez la filière</label><input type="text" id="d-filiere-other-input"></div>
         <div class="field"><label for="d-resume">Résumé</label><textarea id="d-resume" rows="3"></textarea></div>
         <div class="field">
           <label for="d-file">Fichier (PDF, Word, PowerPoint, Excel…)</label>
@@ -417,6 +418,7 @@
         </div>
       </form>`;
     docEditor.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    wireOtherSelects(docEditor);
     document.getElementById("doc-cancel").addEventListener("click", () => { docEditor.style.display = "none"; });
     document.getElementById("doc-form").addEventListener("submit", async ev => {
       ev.preventDefault();
@@ -429,7 +431,7 @@
         titre,
         auteur: document.getElementById("d-auteur").value.trim(),
         type: document.getElementById("d-type").value,
-        filiere: document.getElementById("d-filiere").value.trim(),
+        filiere: selectFieldValue("d-filiere"),
         annee: parseInt(document.getElementById("d-annee").value, 10) || null,
         resume: document.getElementById("d-resume").value.trim(),
       };

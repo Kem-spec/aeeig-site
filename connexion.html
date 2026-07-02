@@ -127,26 +127,16 @@
               <span class="error-msg">Indiquez le nom de votre université.</span>
             </div>
             <div class="field">
-              <label for="m-fac">Faculté <span class="req">*</span></label>
+              <label for="m-fac">Filière <span class="req">*</span></label>
               <select id="m-fac" data-other="m-fac-other" required>
                 <option value="">— Choisir —</option>
-                <option>Faculté de Médecine</option>
-                <option>Faculté de Pharmacie</option>
-                <option>Faculté d'Odonto-Stomatologie</option>
-                <option>Faculté des Sciences et Techniques</option>
-                <option>Faculté de Droit et Sciences Politiques</option>
-                <option>Faculté des Sciences Économiques et de Gestion</option>
-                <option>Faculté des Lettres et Sciences Humaines</option>
-                <option>Faculté des Sciences Sociales</option>
-                <option>Institut Polytechnique (Génie)</option>
-                <option>Autre</option>
               </select>
-              <span class="error-msg">Sélectionnez votre faculté.</span>
+              <span class="error-msg">Sélectionnez votre filière.</span>
             </div>
             <div class="field" id="m-fac-other" hidden>
-              <label for="m-fac-other-input">Précisez votre faculté <span class="req">*</span></label>
+              <label for="m-fac-other-input">Précisez votre filière <span class="req">*</span></label>
               <input type="text" id="m-fac-other-input" autocomplete="off">
-              <span class="error-msg">Indiquez le nom de votre faculté.</span>
+              <span class="error-msg">Indiquez le nom de votre filière.</span>
             </div>
             <div class="field">
               <label for="m-pass">Mot de passe <span class="req">*</span></label>
@@ -285,6 +275,9 @@
   if (location.hash === "#inscription") { showView("create"); showAcct("member"); }
   else if (location.hash === "#abonnement") { showView("create"); showAcct("sub"); }
   else showView("login");
+
+  // Remplir la liste des filières (source unique : data.js)
+  document.getElementById("m-fac").innerHTML = optionList(FILIERES, "");
 
   /* ---- Champs « Autre » : révèlent une saisie libre ---- */
   document.querySelectorAll("select[data-other]").forEach(sel => {
