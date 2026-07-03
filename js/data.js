@@ -41,13 +41,18 @@ const FILIERES = [
   "Agronomie",
 ];
 
-const NIVEAUX = ["Licence 1", "Licence 2", "Licence 3", "Master 1", "Master 2", "Synthèse", "Doctorat"];
+// Niveaux universitaires — liste unique (LMD + cursus type médecine)
+// utilisée à la fois pour le niveau de l'étudiant et le niveau visé d'un document.
+const NIVEAUX = [
+  "Licence 1 / 1ère année",
+  "Licence 2 / 2e année",
+  "Licence 3 / 3e année",
+  "Master 1 / 4e année",
+  "Master 2 / 5e année",
+  "6e année",
+  "7e année",
+  "8e année",
+];
+const NIVEAUX_DOC = NIVEAUX;   // même référentiel pour les documents (uniforme)
 const SEXES = ["Féminin", "Masculin"];
 const DEPOT_TYPES = ["Mémoire", "Thèse", "Article"];
-
-// Niveau visé par un document (les cursus type médecine vont jusqu'à 7 ans)
-const NIVEAUX_DOC = [
-  "1ère année", "2e année", "3e année", "4e année",
-  "5e année", "6e année", "7e année",
-  "Master", "Synthèse", "Doctorat", "Tous niveaux",
-];
