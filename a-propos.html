@@ -86,7 +86,7 @@
 
   <section class="section section-alt">
     <div class="container">
-      <div class="contact-grid reveal">
+      <div class="reveal" style="max-width:640px; margin:0 auto;">
         <div>
           <span class="kicker">Contact</span>
           <h2>Nous écrire</h2>
@@ -121,39 +121,6 @@
             </div>
             <div><strong>Trésorerie (cartes de membre)</strong><span data-setting="tresorierPhone">+224 620 00 00 00</span></div>
           </div>
-        </div>
-
-        <div class="panel-card" style="margin-bottom:0;">
-          <h3>Formulaire de contact</h3>
-          <form id="contact-form" novalidate>
-            <div class="field">
-              <label for="c-nom">Nom et prénoms <span class="req">*</span></label>
-              <input type="text" id="c-nom" autocomplete="name" required>
-              <span class="error-msg">Votre nom est requis.</span>
-            </div>
-            <div class="field">
-              <label for="c-email">Adresse e-mail <span class="req">*</span></label>
-              <input type="email" id="c-email" autocomplete="email" required>
-              <span class="error-msg">Saisissez une adresse e-mail valide.</span>
-            </div>
-            <div class="field">
-              <label for="c-sujet">Sujet <span class="req">*</span></label>
-              <select id="c-sujet" required>
-                <option value="">— Choisir —</option>
-                <option>Adhésion / carte de membre</option>
-                <option>Abonnement non-membre</option>
-                <option>Bibliothèque en ligne</option>
-                <option>Autre demande</option>
-              </select>
-              <span class="error-msg">Sélectionnez un sujet.</span>
-            </div>
-            <div class="field">
-              <label for="c-msg">Message <span class="req">*</span></label>
-              <textarea id="c-msg" rows="5" required></textarea>
-              <span class="error-msg">Votre message est requis.</span>
-            </div>
-            <button type="submit" class="btn btn-primary" style="width:100%;">Envoyer le message</button>
-          </form>
         </div>
       </div>
     </div>
@@ -212,20 +179,6 @@
 <script src="js/config.js"></script>
 <script src="js/data.js"></script>
 <script src="js/app.js"></script>
-<script>
-  document.getElementById("contact-form").addEventListener("submit", e => {
-    e.preventDefault();
-    let ok = true, first = null;
-    e.target.querySelectorAll("input[required], select[required], textarea[required]").forEach(input => {
-      const bad = !input.checkValidity();
-      input.closest(".field").classList.toggle("has-error", bad);
-      if (bad) { ok = false; first = first || input; }
-    });
-    if (!ok) { first.focus(); return; }
-    e.target.reset();
-    toast("Message envoyé ✓ — le bureau vous répondra par e-mail. (Simulé en maquette)");
-  });
-</script>
 
 </body>
 </html>
