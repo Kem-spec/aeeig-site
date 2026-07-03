@@ -85,7 +85,8 @@
 
         <!-- ============ VUE CRÉATION DE COMPTE ============ -->
         <section id="view-create" style="display:none;">
-          <div class="tabs" role="tablist" aria-label="Type de compte">
+          <!-- Onglets masqués : inscription réservée aux membres AEEIG pour l'instant -->
+          <div class="tabs" role="tablist" aria-label="Type de compte" style="display:none;">
             <button type="button" class="tab-btn active" data-acct="member" role="tab">Membre AEEIG</button>
             <button type="button" class="tab-btn" data-acct="sub" role="tab">Abonnement</button>
           </div>
@@ -244,7 +245,6 @@
         <ul class="footer-links">
           <li><a href="connexion.html">Se connecter</a></li>
           <li><a href="connexion.html#inscription">Devenir membre</a></li>
-          <li><a href="connexion.html#abonnement">S'abonner</a></li>
           <li><a href="admin.html">Administration</a></li>
         </ul>
       </div>
@@ -327,9 +327,9 @@
   }
   acctTabs.forEach(t => t.addEventListener("click", () => showAcct(t.dataset.acct)));
 
-  /* ---- Point d'entrée selon l'ancre ---- */
-  if (location.hash === "#inscription") { showView("create"); showAcct("member"); }
-  else if (location.hash === "#abonnement") { showView("create"); showAcct("sub"); }
+  /* ---- Point d'entrée selon l'ancre ----
+     Inscription réservée aux membres AEEIG pour l'instant : #abonnement renvoie vers le formulaire membre. */
+  if (location.hash === "#inscription" || location.hash === "#abonnement") { showView("create"); showAcct("member"); }
   else showView("login");
 
   // Remplir les listes (source unique : data.js)

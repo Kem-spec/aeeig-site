@@ -76,7 +76,7 @@
   <!-- ===== Bloc d'orientation deux profils ===== -->
   <section class="section" style="padding-top: 0;" id="join-block">
     <div class="container">
-      <div class="profiles reveal-stagger reveal">
+      <div class="profiles reveal-stagger reveal" style="grid-template-columns:1fr; max-width:760px; margin:0 auto;">
 
         <article class="profile-card profile-member">
           <div class="profile-icon">
@@ -93,22 +93,11 @@
           <p class="doc-meta" data-setting="tresorierPermanence">Permanence : lundi &amp; jeudi, 15h–18h, siège AEEIG (Conakry)</p>
         </article>
 
+        <!-- Option non-membre (abonnement) masquée temporairement — réservé aux membres AEEIG pour l'instant.
         <article class="profile-card profile-guest">
-          <div class="profile-icon">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-          </div>
-          <h3>Pas encore membre&nbsp;?</h3>
-          <p>Vous n'êtes pas membre de l'AEEIG mais vous souhaitez profiter de la
-             <strong>bibliothèque en ligne</strong> et suivre l'actualité de l'association&nbsp;?
-             Abonnez-vous pour un an.</p>
-          <ul>
-            <li>Durée : <strong data-setting="abonnementDuree">12 mois</strong></li>
-            <li>Tarif : <strong data-setting="abonnementTarif">150 000 GNF / an</strong></li>
-            <li>Paiement : Orange Money, MTN Money, carte bancaire</li>
-            <li>Accès : bibliothèque complète + actualités</li>
-          </ul>
-          <a class="btn btn-green" href="connexion.html#abonnement">S'abonner en ligne</a>
+          ...bloc abonnement conservé pour réactivation ultérieure...
         </article>
+        -->
 
       </div>
     </div>
@@ -139,7 +128,7 @@
           <div>
             <span class="kicker">Ressources</span>
             <h2>La bibliothèque numérique</h2>
-            <p>Mémoires, thèses, cours et guides pratiques, consultables en ligne par les membres et abonnés.</p>
+            <p>Mémoires, thèses, cours et guides pratiques, consultables en ligne par les membres de l'AEEIG.</p>
           </div>
           <a class="btn btn-outline btn-sm" href="bibliotheque.html">Explorer la bibliothèque</a>
         </div>
@@ -221,7 +210,6 @@
         <ul class="footer-links">
           <li><a href="connexion.html">Se connecter</a></li>
           <li><a href="connexion.html#inscription">Devenir membre</a></li>
-          <li><a href="connexion.html#abonnement">S'abonner</a></li>
           <li><a href="admin.html">Administration</a></li>
         </ul>
       </div>
