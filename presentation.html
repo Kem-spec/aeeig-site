@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AEEIG — Présentation</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/favicon-256.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#0E7A52; --green-dark:#0A5C3E; --green-soft:#EAF4EF;
+    --orange:#DE8508; --orange-deep:#B96604; --orange-soft:#FBF1E1;
+    --ink:#172420; --ink-soft:#5B6660; --surface:#F6F8F6; --border:#DFE5E1;
+    --night:#0D1A14;
+    --head:'Archivo',system-ui,sans-serif; --body:'Public Sans',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%; background:#05100b; overflow:hidden; font-family:var(--body);}
+  #stage{
+    position:absolute; top:50%; left:50%; width:1920px; height:1080px;
+    transform-origin:center center; overflow:hidden; background:#fff;
+    box-shadow:0 0 120px rgba(0,0,0,.6);
+  }
+
+  /* ---- Scenes ---- */
+  .scene{position:absolute; inset:0; opacity:0; visibility:hidden; transition:opacity .6s ease; display:flex; flex-direction:column; justify-content:center; padding:96px 120px;}
+  .scene.active{opacity:1; visibility:visible;}
+  .scene.dark{background:radial-gradient(120% 120% at 80% 0%, #143325 0%, var(--night) 55%); color:#fff;}
+  .tri{position:absolute; top:0; left:0; right:0; height:8px; background:linear-gradient(90deg,var(--orange) 0 33.3%,#fff 33.3% 66.6%,var(--green) 66.6%);}
+  .tri.bottom{top:auto; bottom:0;}
+
+  /* enter animation utility: elements with .a animate when scene active */
+  .scene .a{opacity:0; transform:translateY(34px); transition:opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1);}
+  .scene.active .a{opacity:1; transform:none;}
+  .scene .a.s1{transition-delay:.15s}.scene .a.s2{transition-delay:.32s}.scene .a.s3{transition-delay:.49s}
+  .scene .a.s4{transition-delay:.66s}.scene .a.s5{transition-delay:.83s}.scene .a.s6{transition-delay:1.0s}
+  .scene .a.zoom{transform:scale(.9); }
+  .scene.active .a.zoom{transform:scale(1);}
+
+  h1{font-family:var(--head); font-weight:900; letter-spacing:-.03em; line-height:1;}
+  h2{font-family:var(--head); font-weight:800; letter-spacing:-.025em; line-height:1.05;}
+  .kicker{display:inline-flex; align-items:center; gap:14px; font-family:var(--body); font-weight:700; font-size:22px; letter-spacing:.16em; text-transform:uppercase;}
+  .kicker::before{content:""; width:40px; height:3px; background:var(--orange);}
+  .dark .kicker{color:#7FE3B0;} .light .kicker{color:var(--green-dark);}
+  .accent-o{color:var(--orange);} .accent-g{color:#38D67F;}
+
+  /* ---- Intro ---- */
+  .intro-logo{width:340px; filter:drop-shadow(0 20px 50px rgba(0,0,0,.5)); background:#fff; padding:26px 40px; border-radius:28px;}
+  .intro h1{font-size:120px; margin:38px 0 20px;}
+  .intro .sub{font-size:34px; color:rgba(255,255,255,.8); font-weight:500; max-width:1100px;}
+  .badge-pill{display:inline-flex; align-items:center; gap:12px; padding:12px 26px; border-radius:999px; font-weight:700; font-size:22px;}
+  .dark .badge-pill{background:rgba(255,255,255,.1); color:#fff; border:1px solid rgba(255,255,255,.25);}
+
+  /* ---- Pillars ---- */
+  .pillars{display:grid; grid-template-columns:repeat(3,1fr); gap:34px; margin-top:60px;}
+  .pillar{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); border-radius:28px; padding:48px 40px;}
+  .pillar .ic{width:78px; height:78px; border-radius:20px; display:flex; align-items:center; justify-content:center; margin-bottom:26px; background:rgba(56,214,127,.16); color:#7FE3B0;}
+  .pillar h3{font-family:var(--head); font-size:34px; font-weight:800; margin-bottom:14px;}
+  .pillar p{font-size:22px; color:rgba(255,255,255,.72); line-height:1.5;}
+
+  /* ---- Generic light content ---- */
+  .scene.light{background:linear-gradient(180deg,#fff,var(--surface));}
+  .head-row{display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:46px;}
+  .head-row h2{font-size:70px; color:var(--ink);}
+  .lead{font-size:28px; color:var(--ink-soft); max-width:900px; margin-top:14px;}
+
+  /* Hero mock */
+  .hero-mock{position:relative; height:640px; border-radius:32px; overflow:hidden; border:1px solid var(--border); box-shadow:0 40px 90px -30px rgba(0,0,0,.35);}
+  .hero-mock img{width:100%; height:100%; object-fit:cover; object-position:50% 32%;}
+  .hero-mock .scrim{position:absolute; inset:0; background:linear-gradient(90deg,rgba(10,26,20,.9) 0%,rgba(10,26,20,.65) 45%,rgba(10,26,20,.2) 100%);}
+  .hero-mock .txt{position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; padding:0 80px; color:#fff;}
+  .hero-mock h1{font-size:90px; max-width:1100px;}
+  .hero-mock p{font-size:30px; color:rgba(255,255,255,.85); margin-top:24px; max-width:720px;}
+
+  /* Doc cards */
+  .doc-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:28px;}
+  .card{background:#fff; border:1px solid var(--border); border-radius:22px; padding:34px; box-shadow:0 20px 50px -30px rgba(0,0,0,.3);}
+  .doc-type{width:66px; height:82px; border-radius:8px 16px 8px 8px; display:flex; align-items:center; justify-content:center; color:#fff; font-family:var(--head); font-weight:800; font-size:16px; margin-bottom:22px;}
+  .dt1{background:var(--green-dark)} .dt2{background:var(--orange)} .dt3{background:var(--green)} .dt4{background:var(--orange-deep)}
+  .card h3{font-family:var(--head); font-size:26px; color:var(--ink); line-height:1.25; margin-bottom:12px;}
+  .card .meta{font-size:20px; color:var(--ink-soft);}
+  .lock-note{display:inline-flex; align-items:center; gap:14px; margin-top:44px; padding:16px 30px; background:var(--green-soft); color:var(--green-dark); border-radius:999px; font-weight:700; font-size:24px;}
+
+  /* News cards */
+  .news-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:30px;}
+  .news{background:#fff; border:1px solid var(--border); border-radius:22px; overflow:hidden; box-shadow:0 20px 50px -30px rgba(0,0,0,.3);}
+  .news .cov{height:210px; position:relative;}
+  .news .cat{position:absolute; bottom:0; left:0; background:#fff; padding:8px 22px; font-weight:700; font-size:18px; letter-spacing:.06em; text-transform:uppercase; color:var(--green-dark); border-top-right-radius:14px;}
+  .news .bd{padding:30px 32px;}
+  .news .date{font-size:20px; color:var(--ink-soft);}
+  .news h3{font-family:var(--head); font-size:28px; color:var(--ink); margin-top:10px; line-height:1.25;}
+
+  /* Member dashboard mock */
+  .dash{display:grid; grid-template-columns:340px 1fr; gap:36px; align-items:start;}
+  .dash-side{background:#fff; border:1px solid var(--border); border-radius:22px; padding:30px;}
+  .avatar{width:70px; height:70px; border-radius:16px; background:var(--green-dark); color:#fff; display:flex; align-items:center; justify-content:center; font-family:var(--head); font-weight:800; font-size:30px;}
+  .side-row{padding:16px 14px; border-radius:12px; font-size:24px; font-weight:600; color:var(--ink-soft);}
+  .side-row.on{background:var(--green-soft); color:var(--green-dark);}
+  .panel{background:#fff; border:1px solid var(--border); border-radius:22px; padding:36px; margin-bottom:26px;}
+  .panel h3{font-family:var(--head); font-size:30px; margin-bottom:20px; color:var(--ink);}
+  .kv{display:flex; justify-content:space-between; padding:16px 0; border-bottom:1px solid var(--border); font-size:24px;}
+  .kv b{font-weight:700;}
+  .tag{display:inline-block; padding:6px 16px; border-radius:8px; font-weight:700; font-size:19px;}
+  .tag-g{background:var(--green-soft); color:var(--green-dark);} .tag-o{background:var(--orange-soft); color:var(--orange-deep);}
+
+  /* Admin stats */
+  .stat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:26px; margin-bottom:40px;}
+  .stat{background:#fff; border:1px solid var(--border); border-radius:22px; padding:34px;}
+  .stat .num{font-family:var(--head); font-weight:900; font-size:64px; letter-spacing:-.03em;}
+  .stat .lab{font-size:22px; color:var(--ink-soft); margin-top:6px;}
+  .st-o .num{color:var(--orange-deep);} .st-g .num{color:var(--green-dark);}
+  table.piv{width:100%; border-collapse:collapse; font-size:24px; background:#fff; border-radius:16px; overflow:hidden; border:1px solid var(--border);}
+  table.piv th, table.piv td{padding:18px 24px; text-align:left; border-bottom:1px solid var(--border);}
+  table.piv thead th{background:var(--surface); font-family:var(--head); font-weight:700; color:var(--ink);}
+  table.piv td b{font-weight:700;}
+
+  /* Outro */
+  .outro{align-items:center; text-align:center;}
+  .outro .intro-logo{width:300px;}
+  .outro h1{font-size:96px; margin:34px 0 22px;}
+  .outro .url{font-family:var(--head); font-weight:800; font-size:44px; color:#7FE3B0; letter-spacing:.02em;}
+  .outro .cta{margin-top:30px; display:inline-flex; gap:16px; align-items:center; padding:20px 44px; border-radius:999px; background:var(--green); color:#fff; font-family:var(--head); font-weight:800; font-size:30px;}
+
+  /* ---- Progress + controls ---- */
+  #bar{position:absolute; bottom:0; left:0; height:6px; width:0; background:linear-gradient(90deg,var(--orange),var(--green)); z-index:20; transition:width .1s linear;}
+  #ctrl{position:fixed; bottom:18px; left:50%; transform:translateX(-50%); display:flex; gap:12px; align-items:center; z-index:50; background:rgba(0,0,0,.55); padding:10px 16px; border-radius:999px; backdrop-filter:blur(6px); transition:opacity .4s;}
+  #ctrl.hide{opacity:0; pointer-events:none;}
+  #ctrl button{background:rgba(255,255,255,.15); color:#fff; border:none; width:44px; height:44px; border-radius:50%; font-size:18px; cursor:pointer; font-family:var(--body);}
+  #ctrl button:hover{background:rgba(255,255,255,.3);}
+  #ctrl .lbl{color:#fff; font-size:14px; opacity:.85; padding:0 8px;}
+  #hint{position:fixed; top:20px; left:50%; transform:translateX(-50%); z-index:50; color:#fff; background:rgba(0,0,0,.55); padding:10px 20px; border-radius:999px; font-size:15px; transition:opacity .5s;}
+
+  @media (prefers-reduced-motion:reduce){ .scene .a{transition:none;} }
+</style>
+</head>
+<body>
+
+<div id="stage">
+
+  <!-- 1. INTRO -->
+  <section class="scene dark active" data-t="5500">
+    <div class="tri"></div>
+    <div style="max-width:1300px;">
+      <img class="intro-logo a s1 zoom" src="assets/logo-full.png" alt="AEEIG">
+      <div class="a s2" style="margin-top:34px;"><span class="badge-pill">Portail officiel de l'association</span></div>
+      <h1 class="intro a s3" style="font-size:110px; margin-top:34px;">Unis pour <span class="accent-o">réussir</span>,<br>ensemble pour <span class="accent-g">avancer</span></h1>
+      <p class="sub a s4">Amicale des Élèves et Étudiants Ivoiriens de Guinée</p>
+    </div>
+    <div class="tri bottom"></div>
+  </section>
+
+  <!-- 2. PILLARS -->
+  <section class="scene dark" data-t="7000">
+    <div class="tri"></div>
+    <span class="kicker a s1">Un seul portail</span>
+    <h2 class="a s2" style="font-size:76px; margin-top:22px; max-width:1400px;">Toute la vie de l'Amicale, réunie en ligne</h2>
+    <div class="pillars">
+      <div class="pillar a s3">
+        <div class="ic"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
+        <h3>Suivi académique</h3>
+        <p>Chaque membre gère son parcours : université, filière, niveau, bulletins et dépôts.</p>
+      </div>
+      <div class="pillar a s4">
+        <div class="ic"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+        <h3>Bibliothèque numérique</h3>
+        <p>Mémoires, thèses, cours et guides, consultables en ligne — sans téléchargement.</p>
+      </div>
+      <div class="pillar a s5">
+        <div class="ic"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
+        <h3>Vie associative</h3>
+        <p>Actualités, événements, adhésions et communication officielle du bureau.</p>
+      </div>
+    </div>
+    <div class="tri bottom"></div>
+  </section>
+
+  <!-- 3. HERO -->
+  <section class="scene light" data-t="7500">
+    <span class="kicker light a s1" style="color:var(--green-dark);">Accueil</span>
+    <div class="head-row"><h2 class="a s1" style="font-size:64px;">Une vitrine à la hauteur de l'Amicale</h2></div>
+    <div class="hero-mock a s2 zoom">
+      <img src="assets/hero-campus.jpg" alt="">
+      <div class="scrim"></div>
+      <div class="txt">
+        <h1>Unis pour <span style="color:#FFA320;">réussir</span>,<br>ensemble pour <span style="color:#38D67F;">avancer</span></h1>
+        <p>Suivi académique, bibliothèque, entraide et vie associative — sur un seul portail.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. BIBLIOTHEQUE -->
+  <section class="scene light" data-t="9000">
+    <span class="kicker light a s1" style="color:var(--green-dark);">Ressources</span>
+    <div class="head-row">
+      <div><h2 class="a s1" style="font-size:64px;">La bibliothèque numérique</h2>
+      <p class="lead a s2">Des centaines de documents classés par filière, type et niveau.</p></div>
+    </div>
+    <div class="doc-grid">
+      <div class="card a s3"><div class="doc-type dt1">COURS</div><h3>Cours complet d'anatomie</h3><div class="meta">Médecine · PCEM2</div></div>
+      <div class="card a s4"><div class="doc-type dt2">MÉMOIRE</div><h3>Paludisme grave chez l'enfant</h3><div class="meta">Médecine · 2025</div></div>
+      <div class="card a s5"><div class="doc-type dt3">THÈSE</div><h3>Mobile money & inclusion</h3><div class="meta">Économie · 2024</div></div>
+      <div class="card a s6"><div class="doc-type dt4">GUIDE</div><h3>S'installer à Conakry</h3><div class="meta">Vie pratique · 2026</div></div>
+    </div>
+    <div class="lock-note a s6"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Lecture en ligne protégée · aucun téléchargement, aucune impression</div>
+  </section>
+
+  <!-- 5. ACTUALITES -->
+  <section class="scene light" data-t="8000">
+    <span class="kicker light a s1" style="color:var(--green-dark);">Vie de l'association</span>
+    <div class="head-row"><h2 class="a s1" style="font-size:64px;">Actualités &amp; annonces</h2></div>
+    <div class="news-grid">
+      <div class="news a s2"><div class="cov" style="background:var(--green-dark)"><span class="cat">Vie associative</span></div><div class="bd"><div class="date">25 juin 2026</div><h3>Assemblée générale 2026</h3></div></div>
+      <div class="news a s3"><div class="cov" style="background:var(--orange)"><span class="cat">Adhésions</span></div><div class="bd"><div class="date">18 juin 2026</div><h3>Campagne d'adhésion 2026-2027</h3></div></div>
+      <div class="news a s4"><div class="cov" style="background:#133A2C"><span class="cat">Sport &amp; culture</span></div><div class="bd"><div class="date">10 juin 2026</div><h3>Tournoi de maracana inter-universités</h3></div></div>
+    </div>
+    <p class="lead a s5" style="margin-top:44px;">Publiées en un clic depuis l'espace administration — visibles instantanément par tous.</p>
+  </section>
+
+  <!-- 6. ESPACE MEMBRE -->
+  <section class="scene light" data-t="8500">
+    <span class="kicker light a s1" style="color:var(--green-dark);">Espace membre</span>
+    <div class="head-row"><h2 class="a s1" style="font-size:64px;">Chaque étudiant, son espace</h2></div>
+    <div class="dash">
+      <div class="dash-side a s2">
+        <div style="display:flex; align-items:center; gap:16px; margin-bottom:22px;"><div class="avatar">YM</div><div><div style="font-family:var(--head); font-weight:800; font-size:24px; color:var(--ink);">Yves Monteomo</div><div style="color:var(--ink-soft); font-size:19px;">Membre · 2026-2027</div></div></div>
+        <div class="side-row on">Suivi académique</div>
+        <div class="side-row">Mes dépôts</div>
+        <div class="side-row">Bulletins</div>
+        <div class="side-row">Mon profil</div>
+      </div>
+      <div>
+        <div class="panel a s3"><h3>Informations en cours</h3>
+          <div class="kv"><span style="color:var(--ink-soft)">Université</span><b>Université Gamal Abdel Nasser</b></div>
+          <div class="kv"><span style="color:var(--ink-soft)">Filière</span><b>Médecine</b></div>
+          <div class="kv" style="border:none"><span style="color:var(--ink-soft)">Niveau</span><b>Licence 3</b></div>
+        </div>
+        <div class="panel a s4"><h3>Mes dépôts <span class="tag tag-o" style="margin-left:10px;">validation admin</span></h3>
+          <div class="kv"><span>Mémoire de fin de cycle</span><span class="tag tag-g">Validé</span></div>
+          <div class="kv" style="border:none"><span>Article — santé communautaire</span><span class="tag tag-o">En attente</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. ADMIN + STATS -->
+  <section class="scene dark" data-t="8500">
+    <div class="tri"></div>
+    <span class="kicker a s1">Espace administrateur</span>
+    <h2 class="a s1" style="font-size:64px; margin:20px 0 40px; color:#fff;">Pilotez l'Amicale avec des données</h2>
+    <div class="stat-grid">
+      <div class="stat st-o a s2"><div class="num">300+</div><div class="lab">Membres inscrits</div></div>
+      <div class="stat st-g a s3"><div class="num">150+</div><div class="lab">Documents en ligne</div></div>
+      <div class="stat st-o a s4"><div class="num">12</div><div class="lab">Universités</div></div>
+      <div class="stat st-g a s5"><div class="num">24</div><div class="lab">Dépôts à valider</div></div>
+    </div>
+    <div class="a s6" style="display:grid; grid-template-columns:1.4fr 1fr; gap:34px; align-items:center;">
+      <table class="piv">
+        <thead><tr><th>Université × Sexe</th><th>Féminin</th><th>Masculin</th><th>Total</th></tr></thead>
+        <tbody>
+          <tr><td><b>Gamal Abdel Nasser</b></td><td>38</td><td>52</td><td><b>90</b></td></tr>
+          <tr><td><b>Kofi Annan</b></td><td>21</td><td>29</td><td><b>50</b></td></tr>
+          <tr><td><b>Sonfonia</b></td><td>17</td><td>26</td><td><b>43</b></td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:26px; color:rgba(255,255,255,.8); line-height:1.55;">Clés d'adhésion, membres, abonnements, publications et <b style="color:#7FE3B0;">statistiques croisées</b> — tout au même endroit.</p>
+    </div>
+    <div class="tri bottom"></div>
+  </section>
+
+  <!-- 8. OUTRO -->
+  <section class="scene dark outro" data-t="6500">
+    <div class="tri"></div>
+    <img class="intro-logo a s1 zoom" src="assets/logo-full.png" alt="AEEIG">
+    <h1 class="a s2">Rejoignez la communauté</h1>
+    <p class="sub a s3" style="font-size:30px;">Le portail officiel de l'Amicale des Élèves et Étudiants Ivoiriens de Guinée</p>
+    <div class="a s4" style="margin-top:26px;"><span class="url">aeeig.netlify.app</span></div>
+    <div class="a s5"><span class="cta">Créer mon compte →</span></div>
+    <div class="tri bottom"></div>
+  </section>
+
+  <div id="bar"></div>
+</div>
+
+<div id="hint">▶︎ Lecture auto · <b>F</b> plein écran · <b>Espace</b> pause · <b>←/→</b> naviguer · <b>R</b> recommencer</div>
+<div id="ctrl">
+  <button id="prev" title="Précédent">⏮</button>
+  <button id="play" title="Pause/Lecture">⏸</button>
+  <button id="nextb" title="Suivant">⏭</button>
+  <span class="lbl" id="count">1 / 8</span>
+  <button id="full" title="Plein écran">⛶</button>
+</div>
+
+<script>
+  const stage = document.getElementById("stage");
+  function fit(){
+    const s = Math.min(innerWidth/1920, innerHeight/1080);
+    stage.style.transform = `translate(-50%,-50%) scale(${s})`;
+  }
+  addEventListener("resize", fit); fit();
+
+  const scenes = [...document.querySelectorAll(".scene")];
+  const bar = document.getElementById("bar");
+  const count = document.getElementById("count");
+  const playBtn = document.getElementById("play");
+  let i = 0, paused = false, t0 = 0, dur = 0, raf = 0, ended = false;
+
+  function dof(n){ return +scenes[n].dataset.t; }
+
+  function show(n){
+    ended = false;
+    scenes.forEach((s,k)=>s.classList.toggle("active", k===n));
+    i = n; count.textContent = `${n+1} / ${scenes.length}`;
+    dur = dof(n); t0 = performance.now();
+    cancelAnimationFrame(raf); tick();
+  }
+  function tick(){
+    if(paused) return;
+    const el = performance.now() - t0;
+    bar.style.width = Math.min(100, el/dur*100) + "%";
+    if(el >= dur){
+      if(i < scenes.length-1){ show(i+1); }
+      else { ended = true; bar.style.width="100%"; playBtn.textContent="↻"; }
+      return;
+    }
+    raf = requestAnimationFrame(tick);
+  }
+  function togglePlay(){
+    if(ended){ show(0); paused=false; playBtn.textContent="⏸"; return; }
+    paused = !paused; playBtn.textContent = paused ? "▶" : "⏸";
+    if(!paused){ t0 = performance.now() - (dur * (parseFloat(bar.style.width)||0)/100); tick(); }
+  }
+  document.getElementById("play").onclick = togglePlay;
+  document.getElementById("nextb").onclick = ()=>show(Math.min(i+1,scenes.length-1));
+  document.getElementById("prev").onclick = ()=>show(Math.max(i-1,0));
+  document.getElementById("full").onclick = ()=>{ document.documentElement.requestFullscreen?.(); };
+
+  addEventListener("keydown", e=>{
+    if(e.code==="Space"){ e.preventDefault(); togglePlay(); }
+    else if(e.code==="ArrowRight") show(Math.min(i+1,scenes.length-1));
+    else if(e.code==="ArrowLeft") show(Math.max(i-1,0));
+    else if(e.key.toLowerCase()==="f") document.documentElement.requestFullscreen?.();
+    else if(e.key.toLowerCase()==="r") show(0);
+  });
+
+  // Masquer les repères après quelques secondes (pour un enregistrement propre)
+  const hint = document.getElementById("hint"), ctrl = document.getElementById("ctrl");
+  let idleT;
+  function idle(){ clearTimeout(idleT); ctrl.classList.remove("hide"); idleT=setTimeout(()=>ctrl.classList.add("hide"), 2600); }
+  addEventListener("mousemove", idle); idle();
+  setTimeout(()=>hint.style.opacity="0", 6000);
+
+  show(0);
+</script>
+</body>
+</html>
