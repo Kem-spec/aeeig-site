@@ -113,7 +113,14 @@ const Settings = {
 async function injectSettings() {
   const s = await Settings.load();
   document.querySelectorAll("[data-setting]").forEach(el => {
-    if (s[el.dataset.setting] != null) el.textContent = s[el.dataset.setting];
+    const v = s[el.dataset.setting];
+    const has = v != null && String(v).trim() !== "";
+    if (has) el.textContent = v;
+    // Ligne optionnelle (ex. 2e/3e numéro) : masquée si la valeur est vide
+    if (el.hasAttribute("data-optional")) {
+      const row = el.closest("[data-optrow]") || el;
+      row.style.display = has ? "" : "none";
+    }
   });
 }
 

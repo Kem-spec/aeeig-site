@@ -67,6 +67,8 @@
         <ul class="footer-links">
           <li><a href="mailto:contact@aeeig.org" data-setting="contactEmail">contact@aeeig.org</a></li>
           <li><span data-setting="contactPhone">+224 621 00 00 00</span></li>
+          <li data-optrow><span data-setting="contactPhone2" data-optional></span></li>
+          <li data-optrow><span data-setting="contactPhone3" data-optional></span></li>
           <li>Conakry, Guinée</li>
         </ul>
         <div class="socials" style="margin-top:16px;">
@@ -226,7 +228,9 @@
               <div class="field"><label for="set-abonnementTarif">Tarif de l'abonnement</label><input type="text" id="set-abonnementTarif"></div>
               <div class="field"><label for="set-abonnementDuree">Durée de l'abonnement</label><input type="text" id="set-abonnementDuree"></div>
               <div class="field"><label for="set-contactEmail">E-mail de contact</label><input type="email" id="set-contactEmail"></div>
-              <div class="field"><label for="set-contactPhone">Téléphone de contact</label><input type="tel" id="set-contactPhone"></div>
+              <div class="field"><label for="set-contactPhone">Téléphone de contact 1</label><input type="tel" id="set-contactPhone" placeholder="+224 …"></div>
+              <div class="field"><label for="set-contactPhone2">Téléphone de contact 2</label><input type="tel" id="set-contactPhone2" placeholder="laisser vide si inutilisé"></div>
+              <div class="field"><label for="set-contactPhone3">Téléphone de contact 3</label><input type="tel" id="set-contactPhone3" placeholder="laisser vide si inutilisé"></div>
               <div class="field"><label for="set-merchantOrange">N° marchand Orange Money (paiement en ligne)</label><input type="tel" id="set-merchantOrange" placeholder="laisser vide si pas encore configuré"></div>
               <div class="field"><label for="set-merchantMTN">N° marchand MTN Money (paiement en ligne)</label><input type="tel" id="set-merchantMTN" placeholder="laisser vide si pas encore configuré"></div>
               <button type="submit" class="btn btn-green">Enregistrer</button>
@@ -342,7 +346,7 @@
   function fillSettings() {
     Settings._c = null;
     Settings.load().then(s => {
-      ["tresorierPhone","tresorierPermanence","abonnementTarif","abonnementDuree","contactEmail","contactPhone","merchantOrange","merchantMTN"]
+      ["tresorierPhone","tresorierPermanence","abonnementTarif","abonnementDuree","contactEmail","contactPhone","contactPhone2","contactPhone3","merchantOrange","merchantMTN"]
         .forEach(k => { const el = document.getElementById("set-" + k); if (el) el.value = s[k] || ""; });
     });
   }
@@ -563,7 +567,7 @@
   /* ----- Paramètres ----- */
   document.getElementById("settings-form").addEventListener("submit", async e => {
     e.preventDefault();
-    const keysList = ["tresorierPhone","tresorierPermanence","abonnementTarif","abonnementDuree","contactEmail","contactPhone","merchantOrange","merchantMTN"];
+    const keysList = ["tresorierPhone","tresorierPermanence","abonnementTarif","abonnementDuree","contactEmail","contactPhone","contactPhone2","contactPhone3","merchantOrange","merchantMTN"];
     const results = await Promise.all(keysList.map(k => Admin.saveSetting(k, document.getElementById("set-" + k).value.trim())));
     const err = results.find(r => r.error);
     document.getElementById("settings-alert").innerHTML = err
