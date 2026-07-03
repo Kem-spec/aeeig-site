@@ -2,7 +2,7 @@
    Stratégie « réseau d'abord » : en ligne on a toujours la version à jour ;
    hors-ligne on sert la dernière version en cache. Les appels Supabase
    (autre origine) ne sont jamais mis en cache. */
-const CACHE = "aeeig-v1";
+const CACHE = "aeeig-v2";
 const SHELL = [
   "./index.html", "./css/style.css", "./js/config.js", "./js/data.js", "./js/app.js",
   "./assets/logo-full.png", "./assets/logo-mark.png", "./assets/icon-192.png",
