@@ -194,7 +194,14 @@ alter table public.subscriptions enable row level security;
 alter table public.settings      enable row level security;
 
 create policy profiles_select on public.profiles for select using (id = auth.uid() or public.is_admin());
-create policy profiles_update on public.profiles for update using (id = auth.uid() or public.is_admin());
+create policy profiles_update on public.profiles for update
+  using (id = auth.uid() or public.is_admin())
+  with check (public.is_admin() or (id = auth.uid() and is_admin = false and role <> 'admin'));
+
+-- Sécurité : un utilisateur ne peut modifier que ces colonnes de son profil.
+-- role / is_admin / adhesion_key ne sont changés que par les fonctions SECURITY DEFINER.
+revoke update on public.profiles from anon, authenticated;
+grant  update (full_name, universite, faculte, niveau, sexe) on public.profiles to authenticated;
 
 create policy keys_admin on public.adhesion_keys for all using (public.is_admin()) with check (public.is_admin());
 
