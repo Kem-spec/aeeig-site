@@ -145,12 +145,87 @@ img, svg { max-width: 100%; }
 
 .burger {
   display: none;
-  background: none;
-  border: 1px solid var(--border);
+  background: var(--green-soft);
+  border: 1.5px solid var(--green);
   border-radius: var(--radius-sm);
-  padding: 8px 10px;
+  padding: 9px 11px;
   cursor: pointer;
-  color: var(--ink);
+  color: var(--green-dark);
+  line-height: 0;
+  transition: background .18s;
+}
+.burger:active { background: #dceee5; }
+.burger svg { width: 24px; height: 24px; stroke-width: 2.4; }
+
+/* ---------- Bouton flottant « Installer l'app » (façon AssistiveTouch) ---------- */
+.pwa-fab {
+  position: fixed;
+  right: 10px;
+  bottom: 96px;
+  z-index: 350;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: var(--green);
+  color: #fff;
+  box-shadow: 0 6px 20px -4px rgba(14,122,82,.55), 0 0 0 4px rgba(14,122,82,.14);
+  display: none;                 /* affiché en JS seulement si installable */
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: .82;
+  transition: opacity .2s, transform .15s;
+}
+.pwa-fab:hover { opacity: 1; }
+.pwa-fab:active { transform: scale(.92); }
+.pwa-fab .pwa-fab-x {
+  position: absolute;
+  top: -6px; right: -6px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  font-size: 13px;
+  line-height: 20px;
+  text-align: center;
+  border: 2px solid #fff;
+}
+.pwa-fab-label {
+  position: absolute;
+  right: 60px;
+  white-space: nowrap;
+  background: var(--ink);
+  color: #fff;
+  font-size: .8rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow);
+}
+
+/* Fiche d'instructions (iOS) */
+.pwa-sheet-overlay {
+  position: fixed; inset: 0; z-index: 400;
+  background: rgba(15,22,19,.55);
+  display: none; align-items: flex-end; justify-content: center;
+  padding: 16px;
+}
+.pwa-sheet-overlay.open { display: flex; }
+.pwa-sheet {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 24px 22px 28px;
+  max-width: 440px; width: 100%;
+  box-shadow: var(--shadow-lg);
+}
+.pwa-sheet h3 { margin: 0 0 6px; }
+.pwa-sheet ol { margin: 14px 0 0; padding-left: 20px; color: var(--ink-soft); }
+.pwa-sheet li { margin-bottom: 10px; }
+.pwa-sheet .ios-share {
+  display: inline-flex; vertical-align: middle;
+  width: 22px; height: 22px; margin: 0 2px;
+  color: var(--green-dark);
 }
 
 /* ---------- Boutons (pilule, esprit "agence") ---------- */
@@ -1048,8 +1123,13 @@ table.data tr:hover td { background: var(--surface); }
   .main-nav.open { display: flex; }
   .main-nav a { padding: 12px 0; border-bottom: 1px solid var(--border); }
   .main-nav a.active { border-bottom-color: var(--green); }
-  .burger { display: block; }
+  .burger { display: block; flex-shrink: 0; }
   .nav-cta .btn-outline { display: none; }
+  .nav-cta { gap: 8px; }
+  /* Header allégé : le nom long libère la place pour le bouton menu */
+  .brand-sub { display: none; }
+  .brand img { height: 44px; }
+  .brand { gap: 8px; }
   .hero { padding: 48px 0 56px; }
   .hero-grid { grid-template-columns: 1fr; gap: 40px; }
   .hero-visual { justify-content: flex-start; }

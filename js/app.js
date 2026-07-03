@@ -406,3 +406,100 @@ function docCardHTML(doc, { locked = false } = {}) {
 function openViewer(docId) {
   window.open("lecture.html?doc=" + encodeURIComponent(docId), "_blank", "noopener");
 }
+
+/* ============================================================
+   PWA — Service Worker + bouton flottant « Installer l'app »
+   ============================================================ */
+(function pwaInstall() {
+  // Enregistrer le service worker (permet l'installation + secours hors-ligne)
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+  }
+
+  // Déjà installée ? Page de lecture ? Masqué pour la session ? → pas de bouton
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  if (standalone) return;
+  if (/lecture\.html/.test(location.pathname)) return;
+  if (sessionStorage.getItem("aeeig_pwa_hide")) return;
+
+  const ua = navigator.userAgent || "";
+  const isIOS = /iphone|ipad|ipod/i.test(ua) && !/crios|fxios|edgios/i.test(ua);
+  const isMobile = window.matchMedia("(max-width: 860px)").matches || /iphone|ipad|ipod|android/i.test(ua);
+  if (!isMobile) return;
+
+  let deferred = null, fab = null;
+
+  function buildFab() {
+    if (fab) return;
+    fab = document.createElement("button");
+    fab.className = "pwa-fab";
+    fab.setAttribute("aria-label", "Installer l'application AEEIG");
+    fab.innerHTML = `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+      <span class="pwa-fab-x" aria-hidden="true">×</span>`;
+    document.body.appendChild(fab);
+
+    const label = document.createElement("span");
+    label.className = "pwa-fab-label";
+    label.textContent = "Installer l'app";
+    fab.appendChild(label);
+    setTimeout(() => label.remove(), 4500);
+
+    fab.addEventListener("click", async e => {
+      if (e.target.classList.contains("pwa-fab-x")) {
+        e.stopPropagation();
+        sessionStorage.setItem("aeeig_pwa_hide", "1");
+        fab.style.display = "none";
+        return;
+      }
+      if (deferred) {
+        deferred.prompt();
+        const choice = await deferred.userChoice;
+        deferred = null;
+        if (choice.outcome === "accepted") fab.style.display = "none";
+      } else {
+        showSheet();
+      }
+    });
+    fab.style.display = "flex";
+  }
+
+  function showSheet() {
+    let ov = document.getElementById("pwa-sheet");
+    if (!ov) {
+      ov = document.createElement("div");
+      ov.id = "pwa-sheet";
+      ov.className = "pwa-sheet-overlay";
+      ov.innerHTML = `
+        <div class="pwa-sheet" role="dialog" aria-modal="true">
+          <h3>Ajouter AEEIG à l'écran d'accueil</h3>
+          <p style="color:var(--ink-soft); margin:0;">Installez le portail comme une application, pour y accéder d'un seul geste depuis votre téléphone.</p>
+          ${isIOS ? `<ol>
+            <li>Touchez le bouton <strong>Partager</strong>
+              <svg class="ios-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="m8 7 4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>
+              en bas de Safari.</li>
+            <li>Faites défiler puis choisissez <strong>« Sur l'écran d'accueil »</strong>.</li>
+            <li>Touchez <strong>Ajouter</strong>.</li>
+          </ol>` : `<ol>
+            <li>Ouvrez le menu <strong>⋮</strong> de votre navigateur.</li>
+            <li>Choisissez <strong>« Installer l'application »</strong> ou <strong>« Ajouter à l'écran d'accueil »</strong>.</li>
+          </ol>`}
+          <button class="btn btn-primary" id="pwa-sheet-close" style="width:100%; margin-top:16px;">J'ai compris</button>
+        </div>`;
+      document.body.appendChild(ov);
+      ov.addEventListener("click", e => { if (e.target === ov) ov.classList.remove("open"); });
+      ov.querySelector("#pwa-sheet-close").addEventListener("click", () => ov.classList.remove("open"));
+    }
+    ov.classList.add("open");
+  }
+
+  // Android / Chrome : capter l'invite native
+  window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferred = e; buildFab(); });
+  window.addEventListener("appinstalled", () => { if (fab) fab.style.display = "none"; });
+
+  // iOS Safari ne déclenche pas beforeinstallprompt → on montre le bouton (instructions)
+  if (isIOS) {
+    if (document.body) buildFab();
+    else document.addEventListener("DOMContentLoaded", buildFab);
+  }
+})();
