@@ -20,6 +20,7 @@ create table public.profiles (
   role         text not null default 'pending'
                check (role in ('pending','membre','abonne','admin')),
   is_admin     boolean not null default false,   -- privilège admin (indépendant du rôle)
+  telephone    text,
   universite   text,
   faculte      text,
   adhesion_key text,
@@ -64,6 +65,8 @@ create table public.library_docs (
   niveau     text,
   annee      int,
   resume     text,
+  matiere    text,
+  sujet      text,
   file_path  text,
   file_name  text,
   created_at timestamptz not null default now()
@@ -201,7 +204,7 @@ create policy profiles_update on public.profiles for update
 -- Sécurité : un utilisateur ne peut modifier que ces colonnes de son profil.
 -- role / is_admin / adhesion_key ne sont changés que par les fonctions SECURITY DEFINER.
 revoke update on public.profiles from anon, authenticated;
-grant  update (full_name, universite, faculte, niveau, sexe) on public.profiles to authenticated;
+grant  update (full_name, universite, faculte, niveau, sexe, telephone) on public.profiles to authenticated;
 
 create policy keys_admin on public.adhesion_keys for all using (public.is_admin()) with check (public.is_admin());
 

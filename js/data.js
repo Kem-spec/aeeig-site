@@ -15,7 +15,7 @@ const DOC_TYPE_CLASS = {
 // Options proposées dans l'éditeur d'actualités (admin)
 const NEWS_COVERS = ["cover-1", "cover-2", "cover-3", "cover-4", "cover-5", "cover-6"];
 const NEWS_CATEGORIES = [
-  "Vie associative", "Adhésions", "Sport & culture",
+  "Vie de l'amicale", "Adhésions", "Sport & culture",
   "Académique", "Entraide", "Bibliothèque",
 ];
 

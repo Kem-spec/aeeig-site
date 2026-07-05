@@ -67,7 +67,7 @@
               <span class="error-msg">Le mot de passe est requis.</span>
             </div>
             <div style="text-align:right; margin:-4px 0 16px;">
-              <a href="#" style="font-size:.85rem;" onclick="toast('En production : un e-mail de réinitialisation vous sera envoyé.'); return false;">Mot de passe oublié ?</a>
+              <a href="#" id="forgot-link" style="font-size:.85rem;">Mot de passe oublié ?</a>
             </div>
             <button type="submit" class="btn btn-primary" style="width:100%;">Se connecter</button>
           </form>
@@ -96,7 +96,7 @@
             <div class="field">
               <label for="m-key">Clé d'adhésion <span class="req">*</span></label>
               <input type="text" id="m-key" placeholder="AEEIG-2026-XXXX" autocomplete="off" style="text-transform:uppercase; font-family:ui-monospace,monospace;" required>
-              <span class="hint">Clé à usage unique, valable pour l'année académique en cours. (Démo : essayez <code>AEEIG-2026-K7X4</code>)</span>
+              <span class="hint">Clé à usage unique, valable pour l'année académique en cours.</span>
               <span class="error-msg" id="m-key-error">La clé d'adhésion est requise.</span>
             </div>
             <div class="field">
@@ -108,6 +108,12 @@
               <label for="m-email">Adresse e-mail <span class="req">*</span></label>
               <input type="email" id="m-email" autocomplete="email" required>
               <span class="error-msg">Saisissez une adresse e-mail valide.</span>
+            </div>
+            <div class="field">
+              <label for="m-tel">Téléphone <span class="req">*</span></label>
+              <input type="tel" id="m-tel" inputmode="tel" placeholder="+224 6XX XX XX XX" autocomplete="tel" required>
+              <span class="hint">Il apparaîtra sur votre profil comme contact.</span>
+              <span class="error-msg">Votre numéro de téléphone est requis.</span>
             </div>
             <div class="field">
               <label for="m-univ">Université fréquentée <span class="req">*</span></label>
@@ -204,7 +210,7 @@
               <strong data-setting="abonnementTarif">150 000 GNF / an</strong>
             </div>
             <button type="submit" class="btn btn-green" style="width:100%;" id="s-submit">Payer et activer mon abonnement</button>
-            <p class="hint" style="text-align:center; margin-top:12px;">Paiement sécurisé. En mode maquette, le paiement est simulé ; en production, il transitera par la passerelle de paiement.</p>
+            <p class="hint" style="text-align:center; margin-top:12px;">Paiement sécurisé via la passerelle de paiement mobile.</p>
           </form>
 
           <p class="auth-switch" style="text-align:center;">
@@ -385,6 +391,19 @@
     window.location.href = (me && me.role === "admin") ? "admin.html" : "espace-membre.html";
   });
 
+  /* ================= MOT DE PASSE OUBLIÉ ================= */
+  document.getElementById("forgot-link").addEventListener("click", async e => {
+    e.preventDefault();
+    let email = document.getElementById("login-email").value.trim();
+    if (!email) email = (prompt("Entrez l'adresse e-mail de votre compte :") || "").trim();
+    if (!email) return;
+    clearAlert();
+    const redirectTo = location.origin + location.pathname.replace(/connexion\.html$/, "") + "reinitialiser.html";
+    const { error } = await SB.auth.resetPasswordForEmail(email, { redirectTo });
+    if (error) { showAlert("error", "Impossible d'envoyer l'e-mail : " + error.message); return; }
+    showAlert("success", "Un e-mail de réinitialisation a été envoyé à <strong>" + email + "</strong>. Consultez votre boîte (et les spams), puis suivez le lien pour choisir un nouveau mot de passe.");
+  });
+
   /* ================= INSCRIPTION MEMBRE ================= */
   document.getElementById("form-member").addEventListener("submit", async e => {
     e.preventDefault();
@@ -427,6 +446,7 @@
     await Auth.updateProfile({
       niveau: document.getElementById("m-niveau").value,
       sexe: document.getElementById("m-sexe").value,
+      telephone: document.getElementById("m-tel").value.trim(),
     });
     window.location.href = "espace-membre.html";
   });

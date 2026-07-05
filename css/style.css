@@ -141,6 +141,15 @@ img, svg { max-width: 100%; }
 }
 .main-nav a:hover { color: var(--ink); border-color: var(--border); }
 .main-nav a.active { color: var(--green-dark); border-color: var(--green); font-weight: 600; }
+.mobile-only-link { display: none; }   /* visible uniquement dans le menu mobile */
+
+/* Bouton stylé comme un lien (ex. nom de membre cliquable dans l'admin) */
+.linklike {
+  background: none; border: none; padding: 0; cursor: pointer;
+  font: inherit; font-weight: 700; color: var(--green-dark);
+  text-decoration: underline; text-underline-offset: 3px; text-align: left;
+}
+.linklike:hover { color: var(--green); }
 .nav-cta { display: flex; gap: 10px; align-items: center; }
 
 .burger {
@@ -654,6 +663,7 @@ img, svg { max-width: 100%; }
 .dt-livre { background: var(--orange-deep); }
 .dt-guide { background: #5B6660; }
 .doc-card h3 { font-size: 1rem; margin: 0; line-height: 1.35; }
+.doc-subject { display: block; font-size: .82rem; font-weight: 600; color: var(--green-dark); margin: -2px 0 2px; }
 .doc-meta { font-size: .8rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
 .doc-desc { font-size: .87rem; color: var(--ink-soft); flex: 0 1 auto; margin: 0 0 8px; }
 
@@ -1121,6 +1131,7 @@ table.data tr:hover td { background: var(--surface); }
     box-shadow: var(--shadow);
   }
   .main-nav.open { display: flex; }
+  .main-nav .mobile-only-link { display: block; color: var(--green-dark); font-weight: 600; }
   .main-nav a { padding: 12px 0; border-bottom: 1px solid var(--border); }
   .main-nav a.active { border-bottom-color: var(--green); }
   .burger { display: block; flex-shrink: 0; }

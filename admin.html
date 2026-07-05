@@ -163,17 +163,21 @@
 
         <!-- Membres -->
         <section class="dash-panel" id="panel-students">
-          <h2 style="margin-bottom:24px;">Membres étudiants</h2>
-          <div class="lib-search" style="max-width:420px; margin-bottom:20px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-            <input type="search" id="student-q" placeholder="Rechercher par nom, e-mail ou université…" aria-label="Rechercher un membre">
+          <div id="members-list">
+            <h2 style="margin-bottom:24px;">Membres étudiants</h2>
+            <div class="lib-search" style="max-width:420px; margin-bottom:20px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+              <input type="search" id="student-q" placeholder="Rechercher par nom, e-mail ou université…" aria-label="Rechercher un membre">
+            </div>
+            <p class="doc-meta" style="margin-bottom:12px;">Cliquez sur un nom pour voir la fiche complète du membre.</p>
+            <div class="panel-card">
+              <div class="table-wrap"><table class="data">
+                <thead><tr><th>Nom</th><th>E-mail</th><th>Université</th><th>Filière</th><th>Statut</th></tr></thead>
+                <tbody id="students-tbody"></tbody>
+              </table></div>
+            </div>
           </div>
-          <div class="panel-card">
-            <div class="table-wrap"><table class="data">
-              <thead><tr><th>Nom</th><th>E-mail</th><th>Université</th><th>Filière</th><th>Statut</th></tr></thead>
-              <tbody id="students-tbody"></tbody>
-            </table></div>
-          </div>
+          <div id="member-detail" style="display:none;"></div>
         </section>
 
         <!-- Abonnements -->
@@ -289,13 +293,86 @@
       !q || ((m.full_name || "") + " " + (m.email || "") + " " + (m.universite || "") + " " + (m.faculte || "")).toLowerCase().includes(q));
     document.getElementById("students-tbody").innerHTML = items.length ? items.map(m => `
       <tr>
-        <td><strong>${escapeHtml(m.full_name || "—")}</strong></td>
+        <td><button class="linklike" data-member="${m.id}">${escapeHtml(m.full_name || "—")}</button></td>
         <td>${escapeHtml(m.email || "—")}</td>
         <td>${escapeHtml(m.universite || "—")}</td>
         <td>${escapeHtml(m.faculte || "—")}</td>
-        <td><span class="badge ${m.role === "admin" ? "badge-orange" : "badge-green"}">${m.role}</span></td>
+        <td><span class="badge ${m.is_admin ? "badge-orange" : "badge-green"}">${m.is_admin ? "admin" : m.role}</span></td>
       </tr>`).join("") : `<tr><td colspan="5" style="text-align:center; color:var(--ink-soft); padding:24px;">Aucun membre.</td></tr>`;
   }
+
+  // Fiche détaillée d'un membre
+  async function showMemberDetail(id) {
+    const m = members.find(x => x.id === id);
+    if (!m) return;
+    const listEl = document.getElementById("members-list");
+    const detEl = document.getElementById("member-detail");
+    detEl.innerHTML = `<p style="color:var(--ink-soft);">Chargement…</p>`;
+    listEl.style.display = "none";
+    detEl.style.display = "block";
+
+    // Compter ses dépôts et bulletins
+    const [depRes, bullRes] = await Promise.all([
+      SB.from("library_docs").select("id,titre,status", { count: "exact" }).eq("submitted_by", id),
+      SB.from("bulletins").select("id", { count: "exact" }).eq("user_id", id),
+    ]);
+    const deps = depRes.data || [];
+    const row = (label, val) => `<tr><th style="width:220px;">${label}</th><td>${escapeHtml(val || "—")}</td></tr>`;
+
+    detEl.innerHTML = `
+      <button class="btn btn-ghost btn-sm" id="member-back" style="margin-bottom:20px;">← Retour à la liste</button>
+      <div class="section-head" style="margin-bottom:20px;">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <div class="avatar" style="width:52px; height:52px;">${initials(m.full_name || m.email)}</div>
+          <div>
+            <h2 style="margin:0;">${escapeHtml(m.full_name || "—")}</h2>
+            <span class="badge ${m.is_admin ? "badge-orange" : "badge-green"}">${m.is_admin ? "Administrateur" : m.role}</span>
+          </div>
+        </div>
+      </div>
+      <div class="panel-card">
+        <h3>Informations personnelles</h3>
+        <div class="table-wrap"><table class="data">
+          ${row("Nom et prénoms", m.full_name)}
+          ${row("E-mail", m.email)}
+          ${row("Téléphone", m.telephone)}
+          ${row("Sexe", m.sexe)}
+        </table></div>
+      </div>
+      <div class="panel-card">
+        <h3>Cursus</h3>
+        <div class="table-wrap"><table class="data">
+          ${row("Université", m.universite)}
+          ${row("Filière", m.faculte)}
+          ${row("Niveau", m.niveau)}
+        </table></div>
+      </div>
+      <div class="panel-card">
+        <h3>Adhésion</h3>
+        <div class="table-wrap"><table class="data">
+          <tr><th style="width:220px;">Clé d'adhésion</th><td>${m.adhesion_key ? `<span class="key-code">${escapeHtml(m.adhesion_key)}</span>` : "—"}</td></tr>
+          ${row("Inscrit le", m.created_at ? formatDate(m.created_at) : "")}
+          <tr><th>Identifiant</th><td><span class="key-code">${escapeHtml(m.id)}</span></td></tr>
+        </table></div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card stat-green"><div class="stat-num">${bullRes.count || 0}</div><div class="stat-label">Bulletins déposés</div></div>
+        <div class="stat-card stat-orange"><div class="stat-num">${deps.length}</div><div class="stat-label">Documents soumis</div></div>
+      </div>
+      ${deps.length ? `<div class="panel-card"><h3>Documents soumis</h3><div class="table-wrap"><table class="data">
+        <thead><tr><th>Titre</th><th>Statut</th></tr></thead><tbody>
+        ${deps.map(d => `<tr><td>${escapeHtml(d.titre)}</td><td><span class="badge ${DOC_STATUS[d.status] || "badge-gray"}">${DOC_STATUS_L[d.status] || d.status}</span></td></tr>`).join("")}
+        </tbody></table></div></div>` : ""}`;
+
+    document.getElementById("member-back").addEventListener("click", () => {
+      detEl.style.display = "none";
+      listEl.style.display = "block";
+    });
+  }
+  document.getElementById("students-tbody").addEventListener("click", e => {
+    const btn = e.target.closest("[data-member]");
+    if (btn) showMemberDetail(btn.dataset.member);
+  });
 
   function renderSubs() {
     document.getElementById("subs-tbody").innerHTML = subscribers.length ? subscribers.map(s => {
@@ -488,6 +565,10 @@
         </div>
         <div class="field" id="d-filiere-other" hidden><label for="d-filiere-other-input">Précisez la filière</label><input type="text" id="d-filiere-other-input"></div>
         <div class="field"><label for="d-niveau">Niveau visé</label><select id="d-niveau"><option value="">— Choisir —</option>${NIVEAUX_DOC.map(n => `<option>${n}</option>`).join("")}</select></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+          <div class="field"><label for="d-matiere">Matière</label><input type="text" id="d-matiere" placeholder="Ex. Anatomie, Droit civil…"></div>
+          <div class="field"><label for="d-sujet">Sujet</label><input type="text" id="d-sujet" placeholder="Ex. Le système nerveux"></div>
+        </div>
         <div class="field"><label for="d-resume">Résumé</label><textarea id="d-resume" rows="3"></textarea></div>
         <div class="field">
           <label for="d-file">Fichier (PDF, Word, PowerPoint, Excel…)</label>
@@ -514,6 +595,8 @@
         auteur: document.getElementById("d-auteur").value.trim(),
         type: document.getElementById("d-type").value,
         filiere: selectFieldValue("d-filiere"),
+        matiere: document.getElementById("d-matiere").value.trim(),
+        sujet: document.getElementById("d-sujet").value.trim(),
         annee: parseInt(document.getElementById("d-annee").value, 10) || null,
         niveau: document.getElementById("d-niveau").value,
         resume: document.getElementById("d-resume").value.trim(),

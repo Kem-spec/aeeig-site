@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nouveau mot de passe — AEEIG</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="assets/favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon-256.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0E7A52">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="tricolor" aria-hidden="true"></div>
+
+<header class="site-header">
+  <div class="nav-wrap">
+    <a class="brand" href="index.html">
+      <img src="assets/logo-full.png" alt="AEEIG — Amicale des Élèves et Étudiants Ivoiriens de Guinée">
+      <span class="brand-sub">Amicale des Élèves et Étudiants Ivoiriens de Guinée</span>
+    </a>
+  </div>
+</header>
+
+<main>
+  <section class="section">
+    <div class="container">
+      <div class="form-card">
+        <div style="text-align:center; margin-bottom:24px;">
+          <img src="assets/logo-full.png" alt="Logo AEEIG" style="height:64px; width:auto;">
+          <h2 style="margin:.4em 0 .2em;">Nouveau mot de passe</h2>
+          <p style="color:var(--ink-soft); font-size:.94rem; margin:0;">Choisissez un nouveau mot de passe pour votre compte.</p>
+        </div>
+
+        <div id="reset-alert"></div>
+
+        <form id="reset-form" novalidate>
+          <div class="field">
+            <label for="r-pass">Nouveau mot de passe <span class="req">*</span></label>
+            <input type="password" id="r-pass" autocomplete="new-password" minlength="8" required>
+            <span class="hint">8 caractères minimum.</span>
+            <span class="error-msg">8 caractères minimum.</span>
+          </div>
+          <div class="field">
+            <label for="r-pass2">Confirmer le mot de passe <span class="req">*</span></label>
+            <input type="password" id="r-pass2" autocomplete="new-password" required>
+            <span class="error-msg">Les mots de passe ne correspondent pas.</span>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">Enregistrer le nouveau mot de passe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+(async () => {
+  const box = document.getElementById("reset-alert");
+  const form = document.getElementById("reset-form");
+  function alert(type, msg) { box.innerHTML = `<div class="alert alert-${type}" role="alert"><span>${msg}</span></div>`; }
+
+  // Le lien de l'e-mail place un jeton de récupération dans l'URL : supabase-js
+  // ouvre alors une session temporaire. On vérifie qu'elle existe.
+  let recovering = false;
+  SB.auth.onAuthStateChange((event) => { if (event === "PASSWORD_RECOVERY") recovering = true; });
+
+  await new Promise(r => setTimeout(r, 600));
+  const { data: { session } } = await SB.auth.getSession();
+  if (!session && !recovering) {
+    form.style.display = "none";
+    alert("error", "Lien invalide ou expiré. Refaites une demande depuis la page de connexion (« Mot de passe oublié ? »).");
+    return;
+  }
+
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    const p1 = document.getElementById("r-pass");
+    const p2 = document.getElementById("r-pass2");
+    p1.closest(".field").classList.toggle("has-error", p1.value.length < 8);
+    p2.closest(".field").classList.toggle("has-error", p2.value !== p1.value);
+    if (p1.value.length < 8 || p2.value !== p1.value) return;
+
+    const btn = form.querySelector("button[type=submit]");
+    btn.disabled = true; btn.textContent = "Enregistrement…";
+    const { error } = await SB.auth.updateUser({ password: p1.value });
+    if (error) {
+      btn.disabled = false; btn.textContent = "Enregistrer le nouveau mot de passe";
+      alert("error", "Échec : " + error.message);
+      return;
+    }
+    await SB.auth.signOut();
+    form.style.display = "none";
+    alert("success", "Mot de passe modifié. <a href='connexion.html'>Connectez-vous</a> avec votre nouveau mot de passe.");
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -336,6 +336,22 @@ document.addEventListener("DOMContentLoaded", async () => {
         join.href = "#";
         join.addEventListener("click", e => { e.preventDefault(); Auth.signOut(); });
       }
+      // Menu mobile : ajouter « Mon espace » et « Déconnexion » dans le menu déroulant
+      if (nav && !nav.querySelector("[data-mobile-account]")) {
+        const space = document.createElement("a");
+        space.href = "espace-membre.html";
+        space.textContent = "Mon espace";
+        space.setAttribute("data-mobile-account", "");
+        space.className = "mobile-only-link";
+        const out = document.createElement("a");
+        out.href = "#";
+        out.textContent = "Se déconnecter";
+        out.setAttribute("data-mobile-account", "");
+        out.className = "mobile-only-link";
+        out.addEventListener("click", e => { e.preventDefault(); Auth.signOut(); });
+        nav.appendChild(space);
+        nav.appendChild(out);
+      }
     }
   }
 
@@ -401,6 +417,7 @@ function docCardHTML(doc, { locked = false } = {}) {
     <article class="doc-card">
       <div class="doc-type ${DOC_TYPE_CLASS[doc.type] || "dt-guide"}">${(doc.type || "").toUpperCase()}</div>
       <h3>${escapeHtml(doc.titre)}</h3>
+      ${doc.matiere ? `<span class="doc-subject">${escapeHtml(doc.matiere)}${doc.sujet ? " — " + escapeHtml(doc.sujet) : ""}</span>` : (doc.sujet ? `<span class="doc-subject">${escapeHtml(doc.sujet)}</span>` : "")}
       <span class="doc-meta">${escapeHtml(doc.auteur)} · ${escapeHtml(doc.filiere)}${doc.niveau ? " · " + escapeHtml(doc.niveau) : ""} · ${doc.annee || ""}</span>
       <p class="doc-desc">${escapeHtml(doc.resume)}</p>
       ${action}

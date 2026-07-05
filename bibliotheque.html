@@ -167,7 +167,7 @@
       (fType === "Tous" || d.type === fType) &&
       (fFiliere === "Toutes" || d.filiere === fFiliere) &&
       (fNiveau === "Tous niveaux*" || d.niveau === fNiveau) &&
-      (!q || ((d.titre || "") + " " + (d.auteur || "") + " " + (d.filiere || "") + " " + (d.niveau || "") + " " + (d.resume || "")).toLowerCase().includes(q))
+      (!q || ((d.titre || "") + " " + (d.auteur || "") + " " + (d.filiere || "") + " " + (d.niveau || "") + " " + (d.matiere || "") + " " + (d.sujet || "") + " " + (d.resume || "")).toLowerCase().includes(q))
     );
     countEl.textContent = items.length + " document" + (items.length > 1 ? "s" : "") + " trouvé" + (items.length > 1 ? "s" : "");
     grid.innerHTML = items.length
