@@ -396,10 +396,7 @@
       <div class="field"><label for="df-filiere">Filière</label><select id="df-filiere" data-other="df-filiere-other">${optionList(FILIERES, me.faculte || "")}</select></div>
       <div class="field" id="df-filiere-other" hidden><label for="df-filiere-other-input">Précisez la filière</label><input type="text" id="df-filiere-other-input"></div>
       <div class="field"><label for="df-niveau">Niveau visé</label><select id="df-niveau"><option value="">— Choisir —</option>${NIVEAUX_DOC.map(n => `<option>${n}</option>`).join("")}</select></div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
-        <div class="field"><label for="df-matiere">Matière</label><input type="text" id="df-matiere" placeholder="Ex. Anatomie"></div>
-        <div class="field"><label for="df-sujet">Sujet</label><input type="text" id="df-sujet" placeholder="Ex. Le système nerveux"></div>
-      </div>
+      <div class="field"><label for="df-matiere">Matière</label><input type="text" id="df-matiere" placeholder="Ex. Anatomie"></div>
       <div class="field"><label for="df-resume">Résumé</label><textarea id="df-resume" rows="3"></textarea></div>
       <div class="field"><label for="df-file">Fichier (PDF, Word, PowerPoint) <span class="req">*</span></label><input type="file" id="df-file" accept=".pdf,.doc,.docx,.ppt,.pptx" required></div>
       <div style="display:flex; gap:10px;"><button type="submit" class="btn btn-primary">Soumettre</button><button type="button" class="btn btn-outline" id="df-cancel">Annuler</button></div>
@@ -418,7 +415,6 @@
           titre, type: document.getElementById("df-type").value,
           filiere: selectFieldValue("df-filiere"),
           matiere: document.getElementById("df-matiere").value.trim(),
-          sujet: document.getElementById("df-sujet").value.trim(),
           niveau: document.getElementById("df-niveau").value,
           annee: parseInt(document.getElementById("df-annee").value, 10) || null,
           resume: document.getElementById("df-resume").value.trim(),

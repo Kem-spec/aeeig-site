@@ -565,10 +565,7 @@
         </div>
         <div class="field" id="d-filiere-other" hidden><label for="d-filiere-other-input">Précisez la filière</label><input type="text" id="d-filiere-other-input"></div>
         <div class="field"><label for="d-niveau">Niveau visé</label><select id="d-niveau"><option value="">— Choisir —</option>${NIVEAUX_DOC.map(n => `<option>${n}</option>`).join("")}</select></div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
-          <div class="field"><label for="d-matiere">Matière</label><input type="text" id="d-matiere" placeholder="Ex. Anatomie, Droit civil…"></div>
-          <div class="field"><label for="d-sujet">Sujet</label><input type="text" id="d-sujet" placeholder="Ex. Le système nerveux"></div>
-        </div>
+        <div class="field"><label for="d-matiere">Matière</label><input type="text" id="d-matiere" placeholder="Ex. Anatomie, Droit civil…"></div>
         <div class="field"><label for="d-resume">Résumé</label><textarea id="d-resume" rows="3"></textarea></div>
         <div class="field">
           <label for="d-file">Fichier (PDF, Word, PowerPoint, Excel…)</label>
@@ -596,7 +593,6 @@
         type: document.getElementById("d-type").value,
         filiere: selectFieldValue("d-filiere"),
         matiere: document.getElementById("d-matiere").value.trim(),
-        sujet: document.getElementById("d-sujet").value.trim(),
         annee: parseInt(document.getElementById("d-annee").value, 10) || null,
         niveau: document.getElementById("d-niveau").value,
         resume: document.getElementById("d-resume").value.trim(),

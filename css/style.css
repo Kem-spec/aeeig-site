@@ -662,6 +662,8 @@ img, svg { max-width: 100%; }
 .dt-cours { background: var(--green); }
 .dt-livre { background: var(--orange-deep); }
 .dt-guide { background: #5B6660; }
+.dt-sujet { background: #7A3E8E; }
+.dt-article { background: #2C6E8F; }
 .doc-card h3 { font-size: 1rem; margin: 0; line-height: 1.35; }
 .doc-subject { display: block; font-size: .82rem; font-weight: 600; color: var(--green-dark); margin: -2px 0 2px; }
 .doc-meta { font-size: .8rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }

@@ -8,6 +8,8 @@ const DOC_TYPE_CLASS = {
   "Mémoire": "dt-memoire",
   "Thèse":   "dt-these",
   "Cours":   "dt-cours",
+  "Sujet":   "dt-sujet",
+  "Article": "dt-article",
   "Livre":   "dt-livre",
   "Guide":   "dt-guide",
 };
@@ -55,4 +57,4 @@ const NIVEAUX = [
 ];
 const NIVEAUX_DOC = NIVEAUX;   // même référentiel pour les documents (uniforme)
 const SEXES = ["Féminin", "Masculin"];
-const DEPOT_TYPES = ["Mémoire", "Thèse", "Article"];
+const DEPOT_TYPES = ["Mémoire", "Thèse", "Article", "Sujet", "Cours", "Guide"];
