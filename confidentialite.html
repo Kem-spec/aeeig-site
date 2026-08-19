@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Confidentialité &amp; données personnelles — AEEIG</title>
+  <meta name="description" content="Quelles informations le portail de l'AEEIG collecte, pourquoi, combien de temps elles sont conservées, et comment demander leur suppression.">
+  <link rel="icon" href="assets/favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon-256.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0E7A52">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="AEEIG">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Mise en page longue : le portail n'avait pas encore de gabarit « page de
+       texte ». On reste sur les variables de css/style.css, rien de nouveau. */
+    .legal { max-width: 780px; }
+    .legal h2 {
+      font-family: var(--font-head); font-size: clamp(1.35rem, 2.6vw, 1.75rem);
+      margin: 2.6rem 0 .7rem; padding-top: 1.6rem; border-top: 1px solid var(--border);
+    }
+    .legal h3 { font-size: 1.05rem; margin: 1.5rem 0 .4rem; }
+    .legal p, .legal li { color: var(--ink-soft); line-height: 1.75; }
+    .legal p { margin: 0 0 .9rem; }
+    .legal ul { margin: 0 0 .9rem; padding-left: 1.3rem; }
+    .legal li { margin-bottom: .5rem; }
+    .legal strong { color: var(--ink); font-weight: 650; }
+    .legal .maj { font-size: .92rem; color: var(--ink-soft); margin-top: 1.4rem; }
+    .legal-box {
+      background: var(--green-soft); border: 1px solid #cfe5da;
+      border-radius: var(--radius); padding: 1.2rem 1.35rem; margin: 1.5rem 0;
+    }
+    .legal-box h3 { margin-top: 0; }
+    .legal-box p:last-child { margin-bottom: 0; }
+    .legal-table-wrap { overflow-x: auto; margin: 1.4rem 0; }
+    .legal-table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+    .legal-table th, .legal-table td {
+      text-align: left; vertical-align: top; padding: .75rem .85rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .legal-table th { background: var(--surface); color: var(--ink); font-weight: 650; }
+    .legal-table td { color: var(--ink-soft); }
+  </style>
+</head>
+<body>
+
+<div class="tricolor" aria-hidden="true"></div>
+
+<header class="site-header">
+  <div class="nav-wrap">
+    <a class="brand" href="index.html">
+      <img src="assets/logo-full.png" alt="AEEIG — Amicale des Élèves et Étudiants Ivoiriens de Guinée">
+      <span class="brand-sub">Amicale des Élèves et Étudiants Ivoiriens de Guinée</span>
+    </a>
+    <nav class="main-nav" aria-label="Navigation principale">
+      <a href="index.html">Accueil</a>
+      <a href="actualites.html">Actualités</a>
+      <a href="bibliotheque.html">Bibliothèque</a>
+      <a href="a-propos.html">À propos</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-outline btn-sm" href="connexion.html" data-auth-cta>Se connecter</a>
+      <a class="btn btn-primary btn-sm" href="connexion.html#inscription" data-join-cta>Rejoindre</a>
+      <button class="burger" aria-label="Ouvrir le menu" aria-expanded="false">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="page-hero">
+    <div class="container reveal">
+      <span class="kicker">Informations légales</span>
+      <h1>Confidentialité &amp; données personnelles</h1>
+      <p>Ce que le portail de l'AEEIG sait de vous, pourquoi il le sait, et ce que vous
+         pouvez exiger à tout moment.</p>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:12px;">
+    <div class="container legal">
+
+      <p class="maj">Dernière mise à jour : 19 août 2026.</p>
+
+      <h2>Qui est responsable</h2>
+      <p>
+        Ce portail est édité par l'<strong>Amicale des Élèves et Étudiants Ivoiriens de Guinée
+        (AEEIG)</strong>, association d'étudiants basée à Conakry, en République de Guinée.
+      </p>
+      <p>
+        Pour toute question ou demande relative à vos informations :
+        <a href="mailto:contact@aeeig.org" data-setting="contactEmail">contact@aeeig.org</a>.
+      </p>
+
+      <h2>Le principe : rien ne vous est demandé tant que vous ne créez pas de compte</h2>
+      <p>
+        Vous pouvez lire l'accueil, les actualités, la présentation de l'Amicale et consulter
+        la bibliothèque publique <strong>sans donner la moindre information</strong>. Aucun
+        cookie publicitaire, aucun outil de mesure d'audience, aucun traceur : le portail n'utilise
+        ni Google Analytics, ni pixel Facebook, ni équivalent. C'est pourquoi vous n'avez jamais vu
+        de bandeau de consentement — il n'y aurait rien à consentir.
+      </p>
+      <p>
+        Deux exceptions, purement techniques et qui ne servent pas à vous suivre :
+      </p>
+      <ul>
+        <li>un indicateur mémorise que vous avez fermé la proposition « installer l'application »,
+            pour ne pas vous la présenter à chaque page. Il disparaît à la fermeture du navigateur ;</li>
+        <li>une fois connecté, votre session est conservée sur votre appareil pour vous éviter de
+            retaper votre mot de passe à chaque page. Elle disparaît à la déconnexion.</li>
+      </ul>
+
+      <h2>Ce qui est collecté quand vous créez un compte</h2>
+      <div class="legal-table-wrap">
+        <table class="legal-table">
+          <tr>
+            <th>Informations</th>
+            <th>Pourquoi elles sont demandées</th>
+          </tr>
+          <tr>
+            <td>Nom et prénoms, adresse e-mail, téléphone</td>
+            <td>Vous identifier comme membre, vous joindre, et vous permettre de récupérer votre
+                accès en cas de mot de passe oublié.</td>
+          </tr>
+          <tr>
+            <td>Université, filière, niveau d'études</td>
+            <td>Orienter l'accompagnement de l'Amicale et adresser à chacun les informations qui
+                concernent son établissement.</td>
+          </tr>
+          <tr>
+            <td>Sexe</td>
+            <td>Statistiques internes sur la composition de l'Amicale, présentées uniquement sous
+                forme de totaux, jamais nominativement.</td>
+          </tr>
+          <tr>
+            <td>Mot de passe</td>
+            <td>Protéger votre compte. Il est chiffré et <strong>personne à l'AEEIG ne peut le
+                lire</strong>, pas même l'administrateur du site.</td>
+          </tr>
+          <tr>
+            <td>Clé d'adhésion</td>
+            <td>Vérifier que vous êtes bien membre à jour. Elle est délivrée par la trésorerie.</td>
+          </tr>
+          <tr>
+            <td>Documents que vous déposez</td>
+            <td>Alimenter la bibliothèque partagée, si vous choisissez d'en déposer.</td>
+          </tr>
+        </table>
+      </div>
+      <p>
+        La création d'un compte relève de votre seule initiative : elle n'est nécessaire ni pour
+        lire le portail, ni pour adhérer à l'Amicale.
+      </p>
+
+      <h2>Où ces informations sont conservées</h2>
+      <p>
+        Le portail s'appuie sur <strong>Supabase</strong> pour la base de données, les comptes et
+        les fichiers déposés, et sur un hébergeur de pages web pour l'affichage du site. Les
+        serveurs de ces prestataires sont situés hors de Guinée. Ils voient également passer les
+        traces techniques habituelles d'une visite (adresse IP, date, page demandée), dans des
+        journaux automatiques que l'Amicale ne consulte pas.
+      </p>
+      <p>
+        <strong>Vos informations ne sont ni vendues, ni louées, ni communiquées à un tiers</strong>,
+        commercial ou non. Elles ne sortent pas de l'Amicale, sauf obligation légale.
+      </p>
+
+      <h2>Qui, à l'AEEIG, peut voir vos informations</h2>
+      <p>
+        Seuls les membres du bureau disposant d'un accès à l'espace d'administration, dans le cadre
+        de leurs fonctions : gestion des adhésions, des abonnements et de la bibliothèque. Cet accès
+        est nominatif et protégé par mot de passe.
+      </p>
+
+      <h2>Abonnements et paiement</h2>
+      <p>
+        Lorsqu'un abonnement est souscrit, l'Amicale enregistre le nom, l'adresse e-mail, le moyen
+        de paiement choisi et le numéro Mobile Money communiqué, afin de suivre les règlements.
+        <strong>Aucune coordonnée bancaire n'est stockée sur ce site</strong> : le portail ne
+        demande jamais de numéro de carte, ni de code confidentiel Mobile Money.
+      </p>
+
+      <h2>Combien de temps</h2>
+      <ul>
+        <li><strong>Compte membre :</strong> tant que le compte existe, puis douze mois après la
+            dernière connexion, délai au terme duquel il est supprimé.</li>
+        <li><strong>Suivi des abonnements :</strong> conservé pour la durée exigée par la
+            comptabilité de l'association.</li>
+        <li><strong>Documents déposés dans la bibliothèque :</strong> jusqu'à leur retrait par leur
+            auteur ou par le bureau.</li>
+        <li><strong>Journaux techniques des prestataires :</strong> selon leurs propres règles,
+            généralement quelques semaines.</li>
+      </ul>
+
+      <div class="legal-box">
+        <h3>Vos droits</h3>
+        <p>
+          Vous pouvez à tout moment demander à <strong>consulter</strong> les informations
+          enregistrées à votre nom, à les faire <strong>corriger</strong>, à obtenir la
+          <strong>suppression de votre compte</strong>, ou à vous <strong>opposer</strong> à un
+          usage particulier. Une demande de suppression est traitée sous trente jours et n'a pas
+          à être motivée.
+        </p>
+        <p>
+          Écrivez à <a href="mailto:contact@aeeig.org" data-setting="contactEmail">contact@aeeig.org</a>
+          depuis l'adresse de votre compte, ou passez par un membre du bureau.
+        </p>
+      </div>
+
+      <h2>Le cadre applicable</h2>
+      <p>
+        L'AEEIG est établie à Conakry. Le traitement de vos informations relève donc de la
+        <strong>loi L/2016/037/AN du 26 juillet 2016 relative à la cybersécurité et à la protection
+        des données à caractère personnel en République de Guinée</strong>. En attendant la pleine
+        installation de l'autorité de protection prévue par ce texte, les réclamations relèvent de
+        l'Autorité de régulation des postes et télécommunications (ARPT).
+      </p>
+      <p>
+        Nos membres étant ivoiriens, ils restent également fondés à saisir l'autorité de protection
+        des données de Côte d'Ivoire. Les personnes résidant dans l'Union européenne bénéficient en
+        outre des droits ouverts par le règlement général sur la protection des données (RGPD), que
+        cette page respecte dans ses exigences principales : information claire, consentement pour
+        ce qui n'est pas indispensable, droit d'accès, de rectification et d'effacement.
+      </p>
+
+      <h2>Sécurité</h2>
+      <p>
+        Le portail est servi en HTTPS, les mots de passe sont chiffrés et l'accès aux données est
+        restreint par des règles côté serveur. Aucun dispositif n'est infaillible : si un incident
+        venait à exposer des informations de membres, le bureau s'engage à en informer les personnes
+        concernées dans les meilleurs délais.
+      </p>
+
+      <h2>Modifications</h2>
+      <p>
+        Toute évolution de cette page est signalée par la date en tête de document. Un changement
+        touchant à l'usage de vos informations vous serait annoncé par e-mail avant son entrée en
+        vigueur.
+      </p>
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">
+          <img src="assets/logo-full.png" alt="AEEIG — Amicale des Élèves et Étudiants Ivoiriens de Guinée">
+        </div>
+        <p style="font-size:.9rem;">Amicale des Élèves et Étudiants Ivoiriens de Guinée. Unis pour réussir, ensemble pour avancer.</p>
+      </div>
+      <div>
+        <h4>Navigation</h4>
+        <ul class="footer-links">
+          <li><a href="index.html">Accueil</a></li>
+          <li><a href="actualites.html">Actualités</a></li>
+          <li><a href="bibliotheque.html">Bibliothèque</a></li>
+          <li><a href="a-propos.html">À propos</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Espaces</h4>
+        <ul class="footer-links">
+          <li><a href="connexion.html">Se connecter</a></li>
+          <li><a href="connexion.html#inscription">Devenir membre</a></li>
+          <li><a href="confidentialite.html">Confidentialité</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <ul class="footer-links">
+          <li><a href="mailto:contact@aeeig.org" data-setting="contactEmail">contact@aeeig.org</a></li>
+          <li><span data-setting="contactPhone">+224 621 00 00 00</span></li>
+          <li>Conakry, Guinée</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 AEEIG — Tous droits réservés</span>
+      <span><a href="confidentialite.html">Confidentialité &amp; données personnelles</a></span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>

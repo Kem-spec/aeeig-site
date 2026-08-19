@@ -14,6 +14,21 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="AEEIG">
   <link rel="stylesheet" href="css/style.css">
+<style>
+  /* Ligne de consentement des formulaires d'inscription. La case est requise :
+     le navigateur bloque l'envoi tant qu'elle n'est pas cochée, ce qui vaut
+     preuve d'un consentement donné et non présumé. */
+  .consent-line{
+    display:flex; gap:.7rem; align-items:flex-start;
+    margin:.2rem 0 1.1rem; font-size:.88rem; line-height:1.6;
+    color:var(--ink-soft); cursor:pointer;
+  }
+  .consent-line input{
+    width:17px; height:17px; margin-top:.18rem;
+    accent-color:var(--green); flex:0 0 auto; cursor:pointer;
+  }
+  .consent-line a{ color:var(--green); }
+</style>
 </head>
 <body>
 
@@ -163,6 +178,13 @@
               <span class="hint">8 caractères minimum.</span>
               <span class="error-msg">Le mot de passe doit contenir au moins 8 caractères.</span>
             </div>
+            <label class="consent-line" for="m-consent">
+              <input type="checkbox" id="m-consent" name="consent" required>
+              <span>J'accepte que l'AEEIG enregistre les informations ci-dessus pour gérer mon
+                adhésion. Elles ne sont ni vendues ni transmises à un tiers, et je peux demander
+                la suppression de mon compte à tout moment.
+                <a href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a>.</span>
+            </label>
             <button type="submit" class="btn btn-primary" style="width:100%;">Créer mon compte membre</button>
           </form>
 
@@ -209,6 +231,12 @@
               <span>Montant à régler</span>
               <strong data-setting="abonnementTarif">150 000 GNF / an</strong>
             </div>
+            <label class="consent-line" for="s-consent">
+              <input type="checkbox" id="s-consent" name="consent" required>
+              <span>J'accepte que l'AEEIG enregistre les informations ci-dessus pour gérer mon
+                abonnement. Elles ne sont ni vendues ni transmises à un tiers.
+                <a href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a>.</span>
+            </label>
             <button type="submit" class="btn btn-green" style="width:100%;" id="s-submit">Payer et activer mon abonnement</button>
             <p class="hint" style="text-align:center; margin-top:12px;">Paiement sécurisé via la passerelle de paiement mobile.</p>
           </form>
@@ -246,6 +274,7 @@
         <ul class="footer-links">
           <li><a href="connexion.html">Se connecter</a></li>
           <li><a href="connexion.html#inscription">Devenir membre</a></li>
+          <li><a href="confidentialite.html">Confidentialité</a></li>
         </ul>
       </div>
       <div>
@@ -266,6 +295,7 @@
     <div class="footer-bottom">
       <span>© 2026 AEEIG — Tous droits réservés</span>
       <span>Portail étudiant · Conakry, Guinée</span>
+      <span><a href="confidentialite.html">Confidentialité &amp; données personnelles</a></span>
     </div>
   </div>
 </footer>
